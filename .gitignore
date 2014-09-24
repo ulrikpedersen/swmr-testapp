@@ -13,16 +13,24 @@
 *.dylib
 *.dll
 
-# Fortran module files
-*.mod
-
 # Compiled Static libraries
 *.lai
-*.la
-*.a
+#*.la
+#*.a
 *.lib
 
 # Executables
-*.exe
 *.out
 *.app
+
+# Log and backup files
+*.log
+*.bkp
+*~
+
+# Eclipse business
+Debug/
+.project
+.cproject
+.settings/
+
