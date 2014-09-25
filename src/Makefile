@@ -5,7 +5,7 @@ CC=gcc
 CFLAGS := $(CFLAGS) $(INC)
 ODIR=obj
 
-LIBS := -lhdf5 -llog4cxx
+LIBS := -lhdf5 -llog4cxx -lz
 LDFLAGS := $(LDFLAGS) -L$(HDF5_SWMR)/lib $(LIBS)
 BINDIR=..
 
