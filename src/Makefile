@@ -22,6 +22,7 @@ all: $(BINDIR)/swmr-writer $(BINDIR)/swmr-reader
 
 # Compile
 $(ODIR)/%.o: %.cpp $(DEPS)
+	mkdir -p $(ODIR)
 	$(CC) -c -o $@ $< $(CFLAGS)
 
 # Link the writer application
