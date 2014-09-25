@@ -34,3 +34,6 @@ Debug/
 .cproject
 .settings/
 
+# SWMR test binaries
+swmr-reader
+swmr-writer
