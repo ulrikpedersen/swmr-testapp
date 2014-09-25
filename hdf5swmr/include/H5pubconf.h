@@ -122,7 +122,7 @@
 #define H5_HAVE_FILTER_SHUFFLE 1
 
 /* Define if support for szip filter is enabled */
-#define H5_HAVE_FILTER_SZIP 1
+/* #undef H5_HAVE_FILTER_SZIP */
 
 /* Define to 1 if you have the `fork' function. */
 #define H5_HAVE_FORK 1
@@ -222,7 +222,7 @@
 /* #undef H5_HAVE_LIBSOCKET */
 
 /* Define to 1 if you have the `sz' library (-lsz). */
-#define H5_HAVE_LIBSZ 1
+/* #undef H5_HAVE_LIBSZ */
 
 /* Define to 1 if you have the `ws2_32' library (-lws2_32). */
 /* #undef H5_HAVE_LIBWS2_32 */
@@ -375,7 +375,7 @@
 #define H5_HAVE_SYS_TYPES_H 1
 
 /* Define to 1 if you have the <szlib.h> header file. */
-#define H5_HAVE_SZLIB_H 1
+/* #undef H5_HAVE_SZLIB_H */
 
 /* Define if we have thread safe support */
 #define H5_HAVE_THREADSAFE 1

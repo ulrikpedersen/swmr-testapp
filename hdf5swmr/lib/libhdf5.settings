@@ -4,7 +4,7 @@
 General Information:
 -------------------
 		   HDF5 Version: 1.9.178-swmr_chksum5
-		  Configured on: Wed Sep 24 11:07:11 BST 2014
+		  Configured on: Thu Sep 25 11:25:00 BST 2014
 		  Configured by: up45@pc0009.cs.diamond.ac.uk
 		 Configure mode: development
 		    Host system: x86_64-unknown-linux-gnu
@@ -22,14 +22,14 @@ Compiling Options:
                       AM_CFLAGS: 
                        CPPFLAGS: 
                     H5_CPPFLAGS: -D_POSIX_C_SOURCE=199506L   -UNDEBUG -DH5D_DEBUG -DH5E_DEBUG -DH5F_DEBUG -DH5G_DEBUG -DH5HG_DEBUG -DH5I_DEBUG -DH5MM_DEBUG -DH5O_DEBUG -DH5P_DEBUG -DH5S_DEBUG -DH5T_DEBUG -DH5V_DEBUG -DH5Z_DEBUG -DH5_DEBUG_API
-                    AM_CPPFLAGS: -I/dls_sw/prod/tools/RHEL6-x86_64/szip/2-1/prefix/include -D_LARGEFILE_SOURCE -D_LARGEFILE64_SOURCE -D_BSD_SOURCE 
+                    AM_CPPFLAGS: -D_LARGEFILE_SOURCE -D_LARGEFILE64_SOURCE -D_BSD_SOURCE 
                Shared C Library: yes
                Static C Library: yes
   Statically Linked Executables: 
                         LDFLAGS: 
                      H5_LDFLAGS: 
-                     AM_LDFLAGS:  -L/dls_sw/prod/tools/RHEL6-x86_64/szip/2-1/prefix/lib
- 	 	Extra libraries:  -lpthread -lsz -lz -lrt -ldl -lm 
+                     AM_LDFLAGS: 
+ 	 	Extra libraries:  -lpthread -lz -lrt -ldl -lm 
  		       Archiver: ar
  		 	 Ranlib: ranlib
  	      Debugged Packages: d,e,f,g,hg,i,mm,o,p,s,t,v,z
@@ -48,7 +48,7 @@ Features:
                    Threadsafety: yes
             Default API Mapping: v110
  With Deprecated Public Symbols: yes
-         I/O filters (external): deflate(zlib),szip(encoder)
+         I/O filters (external): deflate(zlib)
          I/O filters (internal): shuffle,fletcher32,nbit,scaleoffset
                             MPE: no
                      Direct VFD: no

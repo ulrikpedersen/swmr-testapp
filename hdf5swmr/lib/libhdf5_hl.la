@@ -17,7 +17,7 @@ old_library='libhdf5_hl.a'
 inherited_linker_flags=''
 
 # Libraries that this one depends upon.
-dependency_libs=' -L/dls_sw/prod/tools/RHEL6-x86_64/szip/2-1/prefix/lib /dls_sw/work/tools/RHEL6-x86_64/hdf5/prefix/lib/libhdf5.la -lpthread /dls_sw/prod/tools/RHEL6-x86_64/szip/2-1/prefix/lib/libsz.la -lz -lrt -ldl -lm'
+dependency_libs=' /dls_sw/work/tools/RHEL6-x86_64/hdf5/prefix/lib/libhdf5.la -lpthread -lz -lrt -ldl -lm'
 
 # Names of additional weak libraries provided by this library
 weak_library_names=''
