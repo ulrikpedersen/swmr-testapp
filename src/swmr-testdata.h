@@ -8,6 +8,8 @@
 #ifndef SWMR_TESTDATA_H_
 #define SWMR_TESTDATA_H_
 
+#include "hdf5.h"
+
 const unsigned int swmr_iterations = 20;
 
 // 2 small images of 3x4
@@ -22,7 +24,7 @@ const unsigned int swmr_testdata[2][3][4] = { {
                                        } };
 
 typedef struct Image_t{
-  unsigned long dims[2];
+  hsize_t dims[2];
   const unsigned int * pdata;
 } Image_t;
 

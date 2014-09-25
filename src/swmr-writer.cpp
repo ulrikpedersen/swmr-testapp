@@ -3,6 +3,7 @@
 #include <assert.h>
 #include <sys/time.h>
 
+#include <cstdlib>
 
 #include <log4cxx/logger.h>
 #include <log4cxx/xml/domconfigurator.h>
@@ -23,7 +24,7 @@ public:
   ~SWMRWriter();
   void create_file();
   void get_test_data();
-  void write_test_data(unsigned int niter);
+  void write_test_data(unsigned int niter, unsigned int nframes_cache);
 
 private:
   LoggerPtr log;
@@ -35,7 +36,9 @@ private:
 
 SWMRWriter::SWMRWriter (const char* fname)
 {
+
   this->log = Logger::getLogger("SWMRWriter");
+  LOG4CXX_DEBUG(log, "SWMRWriter constructor. Filename: " << fname);
   this->filename = fname;
   this->fid = -1;
   this->pimg = NULL;
@@ -44,6 +47,7 @@ SWMRWriter::SWMRWriter (const char* fname)
 void SWMRWriter::create_file()
 {
   hid_t fapl;         /* File access property list */
+  hid_t fcpl;
 
   /* Create file access property list */
   fapl = H5Pcreate(H5P_FILE_ACCESS);
@@ -52,8 +56,13 @@ void SWMRWriter::create_file()
   /* Set to use the latest library format */
   assert (H5Pset_libver_bounds(fapl, H5F_LIBVER_LATEST, H5F_LIBVER_LATEST) >= 0);
 
-  /* Open the file */
-  this->fid = H5Fopen(this->filename.c_str(), H5F_ACC_RDWR | H5F_ACC_SWMR_WRITE, fapl);
+  /* Create file creation property list */
+  if((fcpl = H5Pcreate(H5P_FILE_CREATE)) < 0)
+  assert( fcpl >= 0);
+
+  /* Creating the file with SWMR write access*/
+  LOG4CXX_INFO(log, "Creating file: " << filename);
+  this->fid = H5Fcreate(this->filename.c_str(), H5F_ACC_TRUNC | H5F_ACC_SWMR_WRITE, fcpl, fapl);
   assert( this->fid >= 0);
 
   /* Close file access property list */
@@ -62,26 +71,99 @@ void SWMRWriter::create_file()
 
 void SWMRWriter::get_test_data ()
 {
-  //this->pimg = (Image_t *)calloc(1, sizeof(Image_t));
-
+  LOG4CXX_DEBUG(log, "Getting test data from swmr_testdata");
+  this->pimg = (Image_t *)calloc(1, sizeof(Image_t));
+  this->pimg->pdata = (const unsigned int*)swmr_testdata[0];
+  this->pimg->dims[0] = 4;
+  this->pimg->dims[1] = 3;
 }
 
-void SWMRWriter::write_test_data (unsigned int niter)
+void SWMRWriter::write_test_data (unsigned int niter, unsigned int nframes_cache)
 {
+  hid_t        dataspace, dataset;
+  hid_t        filespace, memspace;
+  hid_t        prop;
+  herr_t       status;
+  hsize_t      chunk_dims[3];
+  hsize_t      max_dims[3];
+  hsize_t      img_dims[3];
+  hsize_t      offset[3] = {0,0,0};
+  hsize_t      size[3];
 
+  assert (this->pimg != NULL);
+  chunk_dims[0] = this->pimg->dims[0];
+  chunk_dims[1] = this->pimg->dims[1];
+  chunk_dims[2] = nframes_cache;
+
+  max_dims[0] = this->pimg->dims[0];
+  max_dims[1] = this->pimg->dims[1];
+  max_dims[2] = H5S_UNLIMITED;
+
+  img_dims[0] = this->pimg->dims[0];
+  img_dims[1] = this->pimg->dims[1];
+  img_dims[2] = 1;
+  size[0] = this->pimg->dims[0];
+  size[1] = this->pimg->dims[1];
+  size[2] = 1;
+
+
+  /* Create the dataspace with the given dimensions - and max dimensions */
+  dataspace = H5Screate_simple(3, img_dims, max_dims);
+  assert( dataspace >= 0);
+
+  /* Enable chunking  */
+  prop = H5Pcreate (H5P_DATASET_CREATE);
+  status = H5Pset_chunk (prop, 3, chunk_dims);
+  assert( status >= 0);
+
+  /* Create dataset  */
+  LOG4CXX_DEBUG(log, "Creating dataset");
+  dataset = H5Dcreate2 (this->fid, "data", H5T_NATIVE_INT, dataspace,
+                        H5P_DEFAULT, prop, H5P_DEFAULT);
+
+  LOG4CXX_DEBUG(log, "Starting write loop. Iterations: " << niter);
+  for (int i = 0; i < niter; i++) {
+    /* Extend the dataset  */
+    LOG4CXX_TRACE(log, "Extending. Size: " << size[2] << ", " << size[1] << ", " << size[0]);
+    status = H5Dset_extent(dataset, size);
+    assert( status >= 0);
+
+    /* Select a hyperslab */
+    filespace = H5Dget_space(dataset);
+    status = H5Sselect_hyperslab(filespace, H5S_SELECT_SET, offset, NULL,
+				 img_dims, NULL);
+    assert( status >= 0);
+
+    /* Write the data to the hyperslab */
+    LOG4CXX_TRACE(log, "Writing. Offset: " << offset[2] << ", " << offset[1] << ", " << offset[0]);
+    status = H5Dwrite(dataset, H5T_NATIVE_INT, dataspace, filespace,
+		      H5P_DEFAULT, this->pimg->pdata);
+    assert( status >= 0);
+
+    LOG4CXX_TRACE(log, "Write complete");
+    /* Increment offsets and dimensions as appropriate */
+    offset[2]++;
+    size[2]++;
+  }
+
+  LOG4CXX_DEBUG(log, "Closing intermediate open HDF objects");
+  H5Dclose(dataset);
+  H5Pclose(prop);
+  H5Sclose(dataspace);
+  H5Sclose(filespace);
 }
 
 SWMRWriter::~SWMRWriter ()
 {
-  delete this->log;
+  LOG4CXX_DEBUG(log, "SWMRWriter destructor");
   if (this->fid >= 0){
     assert (H5Fclose(this->fid) >= 0);
     this->fid = -1;
   if (this->pimg != NULL) {
-
+    free(this->pimg);
+    this->pimg = NULL;
   }
   }
-
 }
 
 
@@ -89,9 +171,17 @@ int main() {
   DOMConfigurator::configure("Log4cxxConfig.xml");
   LoggerPtr log(Logger::getLogger("main"));
 
-  LOG4CXX_DEBUG(log, "this is a debug message.");
+  LOG4CXX_INFO(log, "Creating a SWMR Writer object");
+  SWMRWriter swr = SWMRWriter("swmr.h5");
 
+  LOG4CXX_INFO(log, "Creating file");
+  swr.create_file();
 
+  LOG4CXX_INFO(log, "Getting test data");
+  swr.get_test_data();
+
+  LOG4CXX_INFO(log, "Writing 4 iterations");
+  swr.write_test_data(4, 1);
 
   return 0;
 }
