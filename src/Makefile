@@ -2,7 +2,7 @@ HDF5_SWMR=../hdf5swmr
 
 INC := $(INC) -I$(HDF5_SWMR)/include/
 CC=gcc
-CFLAGS := $(CFLAGS) $(INC)
+CFLAGS := $(CFLAGS) $(INC) -g
 ODIR=obj
 
 LIBS := -lhdf5 -llog4cxx -lz
