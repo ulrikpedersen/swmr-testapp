@@ -62,7 +62,9 @@ void SWMRWriter::create_file()
 
   /* Creating the file with SWMR write access*/
   LOG4CXX_INFO(log, "Creating file: " << filename);
-  this->fid = H5Fcreate(this->filename.c_str(), H5F_ACC_TRUNC | H5F_ACC_SWMR_WRITE, fcpl, fapl);
+  //unsigned int flags =  H5F_ACC_TRUNC | H5F_ACC_SWMR_WRITE;
+  unsigned int flags =  H5F_ACC_TRUNC;
+  this->fid = H5Fcreate(this->filename.c_str(), flags, fcpl, fapl);
   assert( this->fid >= 0);
 
   /* Close file access property list */
@@ -73,7 +75,7 @@ void SWMRWriter::get_test_data ()
 {
   LOG4CXX_DEBUG(log, "Getting test data from swmr_testdata");
   this->pimg = (Image_t *)calloc(1, sizeof(Image_t));
-  this->pimg->pdata = (const unsigned int*)swmr_testdata[0];
+  this->pimg->pdata = (unsigned int*)(swmr_testdata[0]);
   this->pimg->dims[0] = 4;
   this->pimg->dims[1] = 3;
 }
@@ -120,6 +122,10 @@ void SWMRWriter::write_test_data (unsigned int niter, unsigned int nframes_cache
   LOG4CXX_DEBUG(log, "Creating dataset");
   dataset = H5Dcreate2 (this->fid, "data", H5T_NATIVE_INT, dataspace,
                         H5P_DEFAULT, prop, H5P_DEFAULT);
+
+  /* Enable SWMR writing mode */
+  assert(H5Fstart_swmr_write(this->fid) >= 0);
+  LOG4CXX_INFO(log, "File writer in SWMR mode. Clients can start reading");
 
   LOG4CXX_DEBUG(log, "Starting write loop. Iterations: " << niter);
   for (int i = 0; i < niter; i++) {

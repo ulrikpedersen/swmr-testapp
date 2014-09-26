@@ -13,7 +13,7 @@
 const unsigned int swmr_iterations = 20;
 
 // 2 small images of 3x4
-const unsigned int swmr_testdata[2][3][4] = { {
+unsigned int swmr_testdata[2][3][4] = { {
                                            {     1,    45,   343,   675},
                                            {   643,  2143,   875,    34},
                                            {   842,   482,  5000,  3762}
@@ -25,7 +25,8 @@ const unsigned int swmr_testdata[2][3][4] = { {
 
 typedef struct Image_t{
   hsize_t dims[2];
-  const unsigned int * pdata;
+  unsigned long long framenumber;
+  unsigned int * pdata;
 } Image_t;
 
 #endif /* SWMR_TESTDATA_H_ */
