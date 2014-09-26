@@ -159,10 +159,10 @@ SWMRWriter::~SWMRWriter ()
   if (this->fid >= 0){
     assert (H5Fclose(this->fid) >= 0);
     this->fid = -1;
+  }
   if (this->pimg != NULL) {
     free(this->pimg);
     this->pimg = NULL;
-  }
   }
 }
 
