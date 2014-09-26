@@ -133,8 +133,8 @@ void SWMRReader::read_latest_dataset()
   status = H5Sselect_hyperslab(memspace, H5S_SELECT_SET, offset, NULL, img_size, NULL);
   assert( status >= 0 );
   LOG4CXX_DEBUG(log, "Reading dataset");
-  void * data = calloc(12, sizeof(unsigned int));
-  //void * data = (void*)(this->preadimg->pdata);
+  //void * data = calloc(12, sizeof(unsigned int));
+  void * data = (void*)(this->preadimg->pdata);
   status = H5Dread(dset, H5T_NATIVE_UINT32, memspace, dspace, H5P_DEFAULT, data);
   assert( status >=0 );
   this->preadimg->framenumber = dims[2];
@@ -156,10 +156,12 @@ bool SWMRReader::check_dataset()
   assert( this->ptestimg->dims[1] == this->preadimg->dims[1]);
 
   bool result = true;
+  int rowlength = this->preadimg->dims[0];
   for (int x = 0; x < this->ptestimg->dims[0]; x++) {
       for (int y = 0; y < this->ptestimg->dims[1]; y++) {
-	  LOG4CXX_TRACE(log, "Comparing: (" << x << "," << y << ") "  << *(this->ptestimg->pdata + (x*y)) << " == " << *(this->preadimg->pdata + (x*y)));
-	  result = *(this->ptestimg->pdata + (x*y)) == *(this->preadimg->pdata + (x*y));
+	  unsigned int index = (rowlength*y)+x;
+	  LOG4CXX_TRACE(log, "Comparing: (" << x << "," << y << ") "  << *(this->ptestimg->pdata + index) << " == " << *(this->preadimg->pdata + index));
+	  result = *(this->ptestimg->pdata + index) == *(this->preadimg->pdata + index);
 	  if (result != true) {
 	      LOG4CXX_WARN(this->log, "Data mismatch. Frame = " << this->preadimg->framenumber);
 	      return false;
