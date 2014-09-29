@@ -1,9 +1,10 @@
 #include <iostream>
 #include <string>
+#include <vector>
 #include <assert.h>
-#include <sys/time.h>
 
 #include <cstdlib>
+#include <ctime>
 
 #include <log4cxx/logger.h>
 #include <log4cxx/xml/domconfigurator.h>
@@ -18,23 +19,79 @@ using namespace log4cxx::helpers;
 
 using namespace std;
 
+class TimeStamp {
+public:
+  TimeStamp();
+  ~TimeStamp(){};
+  void reset();
+  double seconds_until_now();
+  double tsdiff(timespec& start, timespec& end) const;
+private:
+  timespec start;
+};
+
+TimeStamp::TimeStamp ()
+{
+  this->start.tv_nsec = 0;
+  this->start.tv_sec = 0;
+  this->reset();
+}
+
+void TimeStamp::reset()
+{
+  clock_gettime( CLOCK_REALTIME, &this->start);
+}
+
+double TimeStamp::tsdiff (timespec& start, timespec& end) const
+{
+    timespec result;
+    double retval = 0.0;
+    /* Perform the carry for the later subtraction by updating */
+    if ((end.tv_nsec-start.tv_nsec)<0) {
+        result.tv_sec = end.tv_sec-start.tv_sec-1;
+        result.tv_nsec = (long int)(1E9) + end.tv_nsec-start.tv_nsec;
+    } else {
+        result.tv_sec = end.tv_sec-start.tv_sec;
+        result.tv_nsec = end.tv_nsec-start.tv_nsec;
+    }
+    retval = result.tv_sec;
+    retval += (double)result.tv_nsec / (double)1E9;
+    return retval;
+}
+
+double TimeStamp::seconds_until_now()
+{
+    timespec now;
+    clock_gettime( CLOCK_REALTIME, &now);
+    double stampdiff = this->tsdiff(this->start, now);
+    return stampdiff;
+}
+
+
+
 class SWMRReader {
 public:
   SWMRReader(const char * fname);
   ~SWMRReader();
   void open_file();
   void get_test_data();
-  void read_latest_dataset();
+  unsigned long long latest_frame_number();
+  void read_latest_frame();
   bool check_dataset();
-
+  void monitor_dataset(double timeout=2.0);
 
 private:
   LoggerPtr log;
   string filename;
   hid_t fid;
+  hsize_t dims[3];
+  hsize_t maxdims[3];
+
   Image_t *ptestimg;
   Image_t *preadimg;
   void print_open_objects();
+  double polltime;
+  std::vector<bool> checks;
 };
 
 SWMRReader::SWMRReader(const char * fname) {
@@ -44,16 +101,16 @@ SWMRReader::SWMRReader(const char * fname) {
   this->fid = -1;
   this->ptestimg = NULL;
   this->preadimg = NULL;
+  this->polltime = 0.2;
 }
 
 SWMRReader::~SWMRReader() {
   LOG4CXX_DEBUG(log, "SWMRReader destructor");
-/*
+
   if (this->fid >= 0){
     assert (H5Fclose(this->fid) >= 0);
     this->fid = -1;
   }
-*/
 
   if (this->ptestimg != NULL) {
     free(this->ptestimg);
@@ -99,7 +156,7 @@ void SWMRReader::get_test_data ()
   this->preadimg->pdata = (unsigned int*)calloc(bufsize, sizeof(unsigned int));
 }
 
-void SWMRReader::read_latest_dataset()
+unsigned long long SWMRReader::latest_frame_number()
 {
   herr_t status;
   hid_t dset;
@@ -112,15 +169,35 @@ void SWMRReader::read_latest_dataset()
   dspace = H5Dget_space(dset);
   assert( dspace >= 0);
 
+  /* Refresh the dataset, i.e. get the latest info from disk */
+  assert( H5Drefresh(dset) >= 0);
+
   int ndims = H5Sget_simple_extent_ndims(dspace);
   assert( ndims == 3 );
-  hsize_t dims[3];
-  hsize_t maxdims[3];
   H5Sget_simple_extent_dims(dspace, dims, maxdims);
   /* Check the image dimensions match the test image */
   assert( this->ptestimg->dims[0] == dims[0]);
   assert( this->ptestimg->dims[1] == dims[1]);
   LOG4CXX_DEBUG(log, "Got dimensions: " << dims[0] << ", " << dims[1] << ", " << dims[2] << ", ");
+
+  assert( H5Dclose(dset) >= 0 );
+  assert( H5Sclose(dspace) >= 0 );
+
+  return dims[2];
+}
+
+void SWMRReader::read_latest_frame()
+{
+  herr_t status;
+  hid_t dset;
+  assert( this->fid >= 0 );
+  dset = H5Dopen2(fid, "data", H5P_DEFAULT);
+  assert( dset >= 0 );
+
+  /* Get the dataspace */
+  hid_t dspace;
+  dspace = H5Dget_space(dset);
+  assert( dspace >= 0);
 
   hsize_t offset[3] = { 0, 0, dims[2]-1 };
   assert( offset[2] >= 0 );
@@ -132,9 +209,8 @@ void SWMRReader::read_latest_dataset()
   assert(memspace >= 0);
   status = H5Sselect_hyperslab(memspace, H5S_SELECT_SET, offset, NULL, img_size, NULL);
   assert( status >= 0 );
-  LOG4CXX_DEBUG(log, "Reading dataset");
-  //void * data = calloc(12, sizeof(unsigned int));
   void * data = (void*)(this->preadimg->pdata);
+  LOG4CXX_DEBUG(log, "Reading dataset");
   status = H5Dread(dset, H5T_NATIVE_UINT32, memspace, dspace, H5P_DEFAULT, data);
   assert( status >=0 );
   this->preadimg->framenumber = dims[2];
@@ -142,11 +218,8 @@ void SWMRReader::read_latest_dataset()
   // Cleanup
   this->print_open_objects();
   assert( H5Dclose(dset) >= 0 );
-  //assert( H5Sclose(dspace) >= 0 );
-  //assert( H5Sclose(memspace) >= 0 );
-
-  this->print_open_objects();
-  assert( H5Fclose(this->fid) >= 0);
+  assert( H5Sclose(dspace) >= 0 );
+  assert( H5Sclose(memspace) >= 0 );
 }
 
 bool SWMRReader::check_dataset()
@@ -171,14 +244,40 @@ bool SWMRReader::check_dataset()
   return true;
 }
 
+void SWMRReader::monitor_dataset(double timeout)
+{
+  bool carryon = true;
+  bool check_result;
+  LOG4CXX_DEBUG(log, "Starting monitoring");
+  TimeStamp ts;
+
+  while( carryon ) {
+      if (this->latest_frame_number() > this->preadimg->framenumber) {
+        this->read_latest_frame();
+        check_result = this->check_dataset();
+        this->checks.push_back(check_result);
+        ts.reset();
+      } else {
+	double secs = ts.seconds_until_now();
+	if (timeout > 0 && secs > timeout) {
+	  LOG4CXX_WARN(log, "Timeout: it's been " << secs << " seconds since last read");
+	  carryon=false;
+	} else {
+	    usleep((unsigned int)(this->polltime * 1000000));
+	}
+      }
+  }
+}
+
+
 void SWMRReader::print_open_objects()
 {
-  LOG4CXX_DEBUG(log, "\tDataSets open: " << H5Fget_obj_count( this->fid, H5F_OBJ_DATASET ));
-  LOG4CXX_DEBUG(log, "\tGroups open: " << H5Fget_obj_count( this->fid, H5F_OBJ_GROUP ));
-  LOG4CXX_DEBUG(log, "\tAttributes open: " << H5Fget_obj_count( this->fid, H5F_OBJ_ATTR ));
-  LOG4CXX_DEBUG(log, "\tDatatypes open: " << H5Fget_obj_count( this->fid, H5F_OBJ_DATATYPE ));
-  LOG4CXX_DEBUG(log, "\tFiles open: " << H5Fget_obj_count( this->fid, H5F_OBJ_FILE ));
-  LOG4CXX_DEBUG(log, "\tSum ojbects open: " << H5Fget_obj_count( this->fid, H5F_OBJ_ALL ));
+  LOG4CXX_TRACE(log, "    DataSets open:    " << H5Fget_obj_count( this->fid, H5F_OBJ_DATASET ));
+  LOG4CXX_TRACE(log, "    Groups open:      " << H5Fget_obj_count( this->fid, H5F_OBJ_GROUP ));
+  LOG4CXX_TRACE(log, "    Attributes open:  " << H5Fget_obj_count( this->fid, H5F_OBJ_ATTR ));
+  LOG4CXX_TRACE(log, "    Datatypes open:   " << H5Fget_obj_count( this->fid, H5F_OBJ_DATATYPE ));
+  LOG4CXX_TRACE(log, "    Files open:       " << H5Fget_obj_count( this->fid, H5F_OBJ_FILE ));
+  LOG4CXX_TRACE(log, "    Sum objects open: " << H5Fget_obj_count( this->fid, H5F_OBJ_ALL ));
 }
 
 int main() {
@@ -186,7 +285,7 @@ int main() {
   LoggerPtr log(Logger::getLogger("main"));
 
   LOG4CXX_INFO(log, "Creating a SWMR Reader object");
-  SWMRReader srd = SWMRReader("swmr.h5");
+  SWMRReader srd = SWMRReader("/scratch/swmr.h5");
 
   LOG4CXX_INFO(log, "Opening file");
   srd.open_file();
@@ -194,11 +293,8 @@ int main() {
   LOG4CXX_INFO(log, "Getting test data");
   srd.get_test_data();
 
-  LOG4CXX_INFO(log, "Reading latest dataset");
-  srd.read_latest_dataset();
-
-  LOG4CXX_INFO(log, "Checking latest dataset");
-  srd.check_dataset();
+  LOG4CXX_INFO(log, "Starting monitor");
+  srd.monitor_dataset();
 
   return 0;
 }

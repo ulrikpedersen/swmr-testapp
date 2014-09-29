@@ -1,9 +1,9 @@
 #include <iostream>
 #include <string>
 #include <assert.h>
-#include <sys/time.h>
 
 #include <cstdlib>
+#include <ctime>
 
 #include <log4cxx/logger.h>
 #include <log4cxx/xml/domconfigurator.h>
@@ -31,6 +31,7 @@ private:
   hid_t fid;
   string filename;
   Image_t *pimg;
+  double delay;
 };
 
 
@@ -42,6 +43,7 @@ SWMRWriter::SWMRWriter (const char* fname)
   this->filename = fname;
   this->fid = -1;
   this->pimg = NULL;
+  this->delay = 0.2;
 }
 
 void SWMRWriter::create_file()
@@ -62,7 +64,6 @@ void SWMRWriter::create_file()
 
   /* Creating the file with SWMR write access*/
   LOG4CXX_INFO(log, "Creating file: " << filename);
-  //unsigned int flags =  H5F_ACC_TRUNC | H5F_ACC_SWMR_WRITE;
   unsigned int flags =  H5F_ACC_TRUNC;
   this->fid = H5Fcreate(this->filename.c_str(), flags, fcpl, fapl);
   assert( this->fid >= 0);
@@ -146,10 +147,15 @@ void SWMRWriter::write_test_data (unsigned int niter, unsigned int nframes_cache
 		      H5P_DEFAULT, this->pimg->pdata);
     assert( status >= 0);
 
-    LOG4CXX_TRACE(log, "Write complete");
     /* Increment offsets and dimensions as appropriate */
     offset[2]++;
     size[2]++;
+
+    LOG4CXX_TRACE(log, "Flushing");
+    assert( H5Dflush(dataset) >= 0);
+
+    LOG4CXX_TRACE(log, "Sleeping " << this->delay << "s");
+    usleep((unsigned int)(this->delay * 1000000));
   }
 
   LOG4CXX_DEBUG(log, "Closing intermediate open HDF objects");
@@ -178,7 +184,7 @@ int main() {
   LoggerPtr log(Logger::getLogger("main"));
 
   LOG4CXX_INFO(log, "Creating a SWMR Writer object");
-  SWMRWriter swr = SWMRWriter("swmr.h5");
+  SWMRWriter swr = SWMRWriter("/scratch/swmr.h5");
 
   LOG4CXX_INFO(log, "Creating file");
   swr.create_file();
@@ -186,8 +192,8 @@ int main() {
   LOG4CXX_INFO(log, "Getting test data");
   swr.get_test_data();
 
-  LOG4CXX_INFO(log, "Writing 4 iterations");
-  swr.write_test_data(4, 1);
+  LOG4CXX_INFO(log, "Writing 40 iterations");
+  swr.write_test_data(40, 1);
 
   return 0;
 }
