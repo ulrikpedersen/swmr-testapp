@@ -3,6 +3,6 @@ compiler: gcc
 install:
   - sudo apt-get update -qq
   - sudo apt-get install -qq liblog4cxx10-dev zlib1g-dev
-script: make -C src/
-after_success: ./swmr-writer && ./swmr-reader
+  - make -C src/
+script: ./swmr-writer && ./swmr-reader
 
