@@ -184,7 +184,7 @@ int main() {
   LoggerPtr log(Logger::getLogger("main"));
 
   LOG4CXX_INFO(log, "Creating a SWMR Writer object");
-  SWMRWriter swr = SWMRWriter("/scratch/swmr.h5");
+  SWMRWriter swr = SWMRWriter("swmr.h5");
 
   LOG4CXX_INFO(log, "Creating file");
   swr.create_file();

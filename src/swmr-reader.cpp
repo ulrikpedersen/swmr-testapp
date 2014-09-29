@@ -285,7 +285,7 @@ int main() {
   LoggerPtr log(Logger::getLogger("main"));
 
   LOG4CXX_INFO(log, "Creating a SWMR Reader object");
-  SWMRReader srd = SWMRReader("/scratch/swmr.h5");
+  SWMRReader srd = SWMRReader("swmr.h5");
 
   LOG4CXX_INFO(log, "Opening file");
   srd.open_file();
