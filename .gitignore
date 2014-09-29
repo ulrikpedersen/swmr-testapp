@@ -37,3 +37,6 @@ Debug/
 # SWMR test binaries
 swmr-reader
 swmr-writer
+
+.scons*
+
