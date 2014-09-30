@@ -8,7 +8,7 @@ env = Environment()
 env.Append(CCFLAGS = ['-g'])
 
 # Add the dependency of log4cxx
-env.Append(LIBS=['log4cxx', 'hdf5', 'rt'])
+env.Append(LIBS=['log4cxx', 'hdf5', 'rt', 'z'])
 env.Append(CPPPATH=['hdf5swmr/include'])
 env.Append(LIBPATH=['hdf5swmr/lib'])
 
