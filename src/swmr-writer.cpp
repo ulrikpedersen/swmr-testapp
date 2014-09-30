@@ -14,6 +14,7 @@ using namespace log4cxx::helpers;
 
 #include "hdf5.h"
 #include "swmr-testdata.h"
+#include "frame.h"
 
 using namespace std;
 
@@ -29,7 +30,7 @@ private:
     LoggerPtr log;
     hid_t fid;
     string filename;
-    Image_t *pimg;
+    Frame img;
     double delay;
 };
 
@@ -40,7 +41,6 @@ SWMRWriter::SWMRWriter(const char* fname)
     LOG4CXX_DEBUG(log, "SWMRWriter constructor. Filename: " << fname);
     this->filename = fname;
     this->fid = -1;
-    this->pimg = NULL;
     this->delay = 0.2;
 }
 
@@ -73,11 +73,12 @@ void SWMRWriter::create_file()
 void SWMRWriter::get_test_data()
 {
     LOG4CXX_DEBUG(log, "Getting test data from swmr_testdata");
-    this->pimg = (Image_t *) calloc(1, sizeof(Image_t));
-    this->pimg->pdata = (unsigned int*) (swmr_testdata[0]);
-    this->pimg->dims[0] = 4;
-    this->pimg->dims[1] = 3;
+    vector<hsize_t> dims(2);
+    dims[0] = swmr_testdata_cols;
+    dims[1] = swmr_testdata_rows;
+    this->img = Frame(dims, (const unsigned int*)(swmr_testdata[0]));
 }
+
 
 void SWMRWriter::write_test_data(unsigned int niter, unsigned int nframes_cache)
 {
@@ -91,20 +92,20 @@ void SWMRWriter::write_test_data(unsigned int niter, unsigned int nframes_cache)
     hsize_t offset[3] = { 0, 0, 0 };
     hsize_t size[3];
 
-    assert(this->pimg != NULL);
-    chunk_dims[0] = this->pimg->dims[0];
-    chunk_dims[1] = this->pimg->dims[1];
+    assert(this->img.dimensions().size() == 2);
+    chunk_dims[0] = this->img.dimensions()[0];
+    chunk_dims[1] = this->img.dimensions()[1];
     chunk_dims[2] = nframes_cache;
 
-    max_dims[0] = this->pimg->dims[0];
-    max_dims[1] = this->pimg->dims[1];
+    max_dims[0] = this->img.dimensions()[0];
+    max_dims[1] = this->img.dimensions()[1];
     max_dims[2] = H5S_UNLIMITED;
 
-    img_dims[0] = this->pimg->dims[0];
-    img_dims[1] = this->pimg->dims[1];
+    img_dims[0] = this->img.dimensions()[0];
+    img_dims[1] = this->img.dimensions()[1];
     img_dims[2] = 1;
-    size[0] = this->pimg->dims[0];
-    size[1] = this->pimg->dims[1];
+    size[0] = this->img.dimensions()[0];
+    size[1] = this->img.dimensions()[1];
     size[2] = 1;
 
     /* Create the dataspace with the given dimensions - and max dimensions */
@@ -143,7 +144,7 @@ void SWMRWriter::write_test_data(unsigned int niter, unsigned int nframes_cache)
         LOG4CXX_TRACE(log, "Writing. Offset: " << offset[2] << ", "
                       << offset[1] << ", " << offset[0]);
         status = H5Dwrite(dataset, H5T_NATIVE_INT, dataspace, filespace,
-        H5P_DEFAULT, this->pimg->pdata);
+        H5P_DEFAULT, this->img.pdata());
         assert(status >= 0);
 
         /* Increment offsets and dimensions as appropriate */
@@ -170,10 +171,6 @@ SWMRWriter::~SWMRWriter()
     if (this->fid >= 0) {
         assert(H5Fclose(this->fid) >= 0);
         this->fid = -1;
-    }
-    if (this->pimg != NULL) {
-        free(this->pimg);
-        this->pimg = NULL;
     }
 }
 
