@@ -12,10 +12,10 @@ BINDIR=..
 _DEPS = hdf5.h
 DEPS = $(patsubst %,$(HDF5_SWMR)/include/%,$(_DEPS))
 
-_WROBJ = swmr-testapp.o swmr-writer.o
+_WROBJ = swmr-writer.o
 WROBJ = $(patsubst %,$(ODIR)/%,$(_WROBJ))
 
-_RDOBJ = swmr-testapp.o swmr-reader.o
+_RDOBJ = swmr-reader.o
 RDOBJ = $(patsubst %,$(ODIR)/%,$(_RDOBJ))
 
 all: $(BINDIR)/swmr-writer $(BINDIR)/swmr-reader
