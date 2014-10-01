@@ -37,3 +37,8 @@ Debug/
 # SWMR test binaries
 swmr-reader
 swmr-writer
+
+# Generated HDF5 files
+*.h5
+*.hdf
+*.hdf5
