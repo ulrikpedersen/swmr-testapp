@@ -4,7 +4,6 @@
 #include <algorithm>
 
 #include <cstring>
-#include <cstdlib>
 #include <assert.h>
 
 #include "frame.h"
@@ -36,7 +35,7 @@ Frame::Frame(const std::vector<hsize_t>& dims, const uint32_t* pdata)
     m_dims = dims;   // copy the input dimensions
 
     unsigned long long nitems = Frame::num_items(dims);
-    m_pdata = (uint32_t*)calloc(nitems, sizeof(uint32_t));
+    m_pdata = new uint32_t [nitems];
     memcpy(m_pdata, pdata, nitems * sizeof(uint32_t));
 }
 
@@ -59,7 +58,7 @@ uint32_t* Frame::create_buffer()
 {
     unsigned long long nitems = this->num_items();
     assert( nitems > 0);
-    uint32_t * new_buffer = (uint32_t *)calloc(nitems, sizeof(uint32_t));
+    uint32_t * new_buffer = new uint32_t [nitems];
     return new_buffer;
 }
 

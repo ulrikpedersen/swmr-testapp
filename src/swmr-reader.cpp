@@ -3,7 +3,6 @@
 #include <vector>
 #include <assert.h>
 
-#include <cstdlib>
 #include <ctime>
 
 #include <log4cxx/logger.h>
@@ -22,10 +21,7 @@ using namespace std;
 class TimeStamp {
 public:
     TimeStamp();
-    ~TimeStamp()
-    {
-    }
-    ;
+    ~TimeStamp(){};
     void reset();
     double seconds_until_now();
     double tsdiff(timespec& start, timespec& end) const;
@@ -118,7 +114,7 @@ SWMRReader::~SWMRReader()
     }
 
     if (m_pdata != NULL) {
-        free(m_pdata);
+        delete[] m_pdata;
         m_pdata = NULL;
     }
 }
