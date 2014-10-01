@@ -24,6 +24,7 @@ public:
     ~SWMRWriter();
     void create_file();
     void get_test_data();
+    void get_test_data(string fname, string dsetname);
     void write_test_data(unsigned int niter, unsigned int nframes_cache);
 
 private:
@@ -79,6 +80,12 @@ void SWMRWriter::get_test_data()
     this->img = Frame(dims, (const uint32_t*)(swmr_testdata[0]));
 }
 
+void SWMRWriter::get_test_data(string fname, string dsetname)
+{
+    LOG4CXX_DEBUG(log, "Getting test data from file/dset: "
+                  << fname << "/" << dsetname);
+    this->img = Frame(fname, dsetname);
+}
 
 void SWMRWriter::write_test_data(unsigned int niter, unsigned int nframes_cache)
 {
@@ -187,6 +194,7 @@ int main()
 
     LOG4CXX_INFO(log, "Getting test data");
     swr.get_test_data();
+    //swr.get_test_data(string("testimg.h5"), string("data"));
 
     LOG4CXX_INFO(log, "Writing 40 iterations");
     swr.write_test_data(40, 1);

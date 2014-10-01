@@ -72,6 +72,7 @@ public:
     ~SWMRReader();
     void open_file();
     void get_test_data();
+    void get_test_data(string fname, string dsetname);
     unsigned long long latest_frame_number();
     void read_latest_frame();
     bool check_dataset();
@@ -141,7 +142,17 @@ void SWMRReader::get_test_data()
     vector<hsize_t> dims(2);
     dims[0] = swmr_testdata_cols;
     dims[1] = swmr_testdata_rows;
-    m_testimg = Frame(dims, (const unsigned int*) (swmr_testdata[0]));
+    //m_testimg = Frame(dims, (const unsigned int*) (swmr_testdata[0]));
+    m_testimg = Frame(string("testimg.h5"), string("data"));
+
+    // Allocate some space for our reading-in buffer
+    m_pdata = m_testimg.create_buffer();
+}
+
+void SWMRReader::get_test_data(string fname, string dsetname)
+{
+    LOG4CXX_DEBUG(m_log, "Getting test data from: " << fname << "/" << dsetname);
+    m_testimg = Frame(fname, dsetname);
 
     // Allocate some space for our reading-in buffer
     m_pdata = m_testimg.create_buffer();
@@ -291,6 +302,7 @@ int main()
 
     LOG4CXX_INFO(log, "Getting test data");
     srd.get_test_data();
+    //srd.get_test_data(string("testimg.h5"), string("data"));
 
     LOG4CXX_INFO(log, "Starting monitor");
     srd.monitor_dataset();
