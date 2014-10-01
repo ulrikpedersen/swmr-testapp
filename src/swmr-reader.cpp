@@ -112,9 +112,9 @@ SWMRReader::~SWMRReader()
 {
     LOG4CXX_DEBUG(m_log, "SWMRReader destructor");
 
-    if (this->m_fid >= 0) {
-        assert(H5Fclose(this->m_fid) >= 0);
-        this->m_fid = -1;
+    if (m_fid >= 0) {
+        assert(H5Fclose(m_fid) >= 0);
+        m_fid = -1;
     }
 
     if (m_pdata != NULL) {
@@ -175,8 +175,12 @@ unsigned long long SWMRReader::latest_frame_number()
     /* Check the image dimensions match the test image */
     assert(m_testimg.dimensions()[0] == m_dims[0]);
     assert(m_testimg.dimensions()[1] == m_dims[1]);
-    LOG4CXX_DEBUG(m_log, "Got dimensions: " << m_dims[0] << ", "
-                  << m_dims[1] << ", " << m_dims[2] << ", ");
+    if (m_dims[2] > m_latest_framenumber) {
+        LOG4CXX_DEBUG(m_log, "Got dimensions: " << m_dims[0] << ", "
+                              << m_dims[1] << ", " << m_dims[2]);
+    } else {
+        LOG4CXX_TRACE(m_log, "No new data");
+    }
 
     assert(H5Dclose(dset) >= 0);
     assert(H5Sclose(dspace) >= 0);
@@ -209,9 +213,14 @@ void SWMRReader::read_latest_frame()
     status = H5Sselect_hyperslab(memspace, H5S_SELECT_SET, offset,
                                 NULL, img_size, NULL);
     assert(status >= 0);
-    LOG4CXX_DEBUG(m_log, "Reading dataset");
+
+    LOG4CXX_DEBUG(m_log, "Reading dataset: size = "
+                  << img_size[0] << ", " << img_size[1] << ", "<< img_size[2]
+                  << " offset = "
+                  << offset[0] << ", " << offset[1] << ", "<< offset[2]);
     status = H5Dread(dset, H5T_NATIVE_UINT32,
-                     memspace, dspace, H5P_DEFAULT, static_cast<void*>(this->m_pdata));
+                     memspace, dspace, H5P_DEFAULT,
+                     static_cast<void*>(m_pdata));
     assert(status >= 0);
     this->m_latest_framenumber = m_dims[2];
 
@@ -224,7 +233,13 @@ void SWMRReader::read_latest_frame()
 
 bool SWMRReader::check_dataset()
 {
+    LOG4CXX_DEBUG(m_log, "Creating new Frame with read data");
     Frame readimg(m_testimg.dimensions(), this->m_pdata);
+    assert(readimg.dimensions()[0] == m_testimg.dimensions()[0]);
+    assert(readimg.dimensions()[1] == m_testimg.dimensions()[1]);
+    assert(readimg.dimensions()[0] == m_dims[0]);
+    assert(readimg.dimensions()[1] == m_dims[1]);
+
     bool result = readimg == m_testimg;
     if (result != true) {
         LOG4CXX_WARN(m_log, "Data mismatch. Frame = " << m_latest_framenumber);
