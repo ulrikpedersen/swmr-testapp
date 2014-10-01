@@ -11,8 +11,15 @@
 #include <string>
 #include <vector>
 #include <stdint.h>
-#include "hdf5.h"
 
+#include <log4cxx/logger.h>
+#include <log4cxx/xml/domconfigurator.h>
+#include <log4cxx/ndc.h>
+using namespace log4cxx;
+using namespace log4cxx::xml;
+using namespace log4cxx::helpers;
+
+#include "hdf5.h"
 
 class Frame {
 public:
@@ -32,6 +39,7 @@ public:
     bool operator==(const Frame& cmp);  // equal
     bool operator!=(const Frame& cmp);  // not equal
 private:
+    LoggerPtr m_log;
     uint32_t *m_pdata;
     std::vector<hsize_t> m_dims;
 
