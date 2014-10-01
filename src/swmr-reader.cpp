@@ -142,8 +142,7 @@ void SWMRReader::get_test_data()
     vector<hsize_t> dims(2);
     dims[0] = swmr_testdata_cols;
     dims[1] = swmr_testdata_rows;
-    //m_testimg = Frame(dims, (const unsigned int*) (swmr_testdata[0]));
-    m_testimg = Frame(string("testimg.h5"), string("data"));
+    m_testimg = Frame(dims, (const unsigned int*) (swmr_testdata[0]));
 
     // Allocate some space for our reading-in buffer
     m_pdata = m_testimg.create_buffer();
