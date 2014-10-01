@@ -99,13 +99,13 @@ private:
 
 SWMRReader::SWMRReader(const char * fname)
 {
-    this->m_log = Logger::getLogger("SWMRReader");
+    m_log = Logger::getLogger("SWMRReader");
     LOG4CXX_DEBUG(m_log, "SWMRReader constructor. Filename: " << fname);
-    this->m_filename = fname;
-    this->m_fid = -1;
-    this->m_polltime = 0.2;
-    this->m_pdata = NULL;
-    this->m_latest_framenumber = 0;
+    m_filename = fname;
+    m_fid = -1;
+    m_polltime = 0.2;
+    m_pdata = NULL;
+    m_latest_framenumber = 0;
 }
 
 SWMRReader::~SWMRReader()
@@ -126,7 +126,7 @@ SWMRReader::~SWMRReader()
 void SWMRReader::open_file()
 {
     // sanity check
-    assert(this->m_filename != "");
+    assert(m_filename != "");
 
     /* Create file access property list */
     hid_t fapl = H5Pcreate(H5P_FILE_ACCESS);
@@ -134,9 +134,9 @@ void SWMRReader::open_file()
     /* Set to use the latest library format */
     assert(H5Pset_libver_bounds(fapl, H5F_LIBVER_LATEST, H5F_LIBVER_LATEST) >= 0);
 
-    this->m_fid = H5Fopen(this->m_filename.c_str(),
-                        H5F_ACC_RDONLY | H5F_ACC_SWMR_READ, fapl);
-    assert(this->m_fid >= 0);
+    m_fid = H5Fopen(m_filename.c_str(),
+                    H5F_ACC_RDONLY | H5F_ACC_SWMR_READ, fapl);
+    assert(m_fid >= 0);
 }
 
 void SWMRReader::get_test_data()
@@ -145,18 +145,17 @@ void SWMRReader::get_test_data()
     vector<hsize_t> dims(2);
     dims[0] = swmr_testdata_cols;
     dims[1] = swmr_testdata_rows;
-    this->m_testimg = Frame(dims, (const unsigned int*)(swmr_testdata[0]));
-
+    m_testimg = Frame(dims, (const unsigned int*) (swmr_testdata[0]));
 
     // Allocate some space for our reading-in buffer
-    this->m_pdata = this->m_testimg.create_buffer();
+    m_pdata = m_testimg.create_buffer();
 }
 
 unsigned long long SWMRReader::latest_frame_number()
 {
     herr_t status;
     hid_t dset;
-    assert(this->m_fid >= 0);
+    assert(m_fid >= 0);
     dset = H5Dopen2(m_fid, "data", H5P_DEFAULT);
     assert(dset >= 0);
 
@@ -192,7 +191,7 @@ void SWMRReader::read_latest_frame()
 {
     herr_t status;
     hid_t dset;
-    assert(this->m_fid >= 0);
+    assert(m_fid >= 0);
     dset = H5Dopen2(m_fid, "data", H5P_DEFAULT);
     assert(dset >= 0);
 
@@ -211,7 +210,7 @@ void SWMRReader::read_latest_frame()
     memspace = H5Screate_simple(2, m_dims, NULL);
     assert(memspace >= 0);
     status = H5Sselect_hyperslab(memspace, H5S_SELECT_SET, offset,
-                                NULL, img_size, NULL);
+                                 NULL, img_size, NULL);
     assert(status >= 0);
 
     LOG4CXX_DEBUG(m_log, "Reading dataset: size = "
@@ -222,7 +221,7 @@ void SWMRReader::read_latest_frame()
                      memspace, dspace, H5P_DEFAULT,
                      static_cast<void*>(m_pdata));
     assert(status >= 0);
-    this->m_latest_framenumber = m_dims[2];
+    m_latest_framenumber = m_dims[2];
 
     // Cleanup
     this->print_open_objects();
@@ -234,7 +233,7 @@ void SWMRReader::read_latest_frame()
 bool SWMRReader::check_dataset()
 {
     LOG4CXX_DEBUG(m_log, "Creating new Frame with read data");
-    Frame readimg(m_testimg.dimensions(), this->m_pdata);
+    Frame readimg(m_testimg.dimensions(), m_pdata);
     assert(readimg.dimensions()[0] == m_testimg.dimensions()[0]);
     assert(readimg.dimensions()[1] == m_testimg.dimensions()[1]);
     assert(readimg.dimensions()[0] == m_dims[0]);
@@ -255,10 +254,10 @@ void SWMRReader::monitor_dataset(double timeout)
     TimeStamp ts;
 
     while (carryon) {
-        if (this->latest_frame_number() > this->m_latest_framenumber) {
+        if (this->latest_frame_number() > m_latest_framenumber) {
             this->read_latest_frame();
             check_result = this->check_dataset();
-            this->m_checks.push_back(check_result);
+            m_checks.push_back(check_result);
             ts.reset();
         } else {
             double secs = ts.seconds_until_now();
@@ -267,7 +266,7 @@ void SWMRReader::monitor_dataset(double timeout)
                              << " seconds since last read");
                 carryon = false;
             } else {
-                usleep((unsigned int) (this->m_polltime * 1000000));
+                usleep((unsigned int) (m_polltime * 1000000));
             }
         }
     }
@@ -275,12 +274,12 @@ void SWMRReader::monitor_dataset(double timeout)
 
 void SWMRReader::print_open_objects()
 {
-    LOG4CXX_TRACE(m_log, "    DataSets open:    " << H5Fget_obj_count( this->m_fid, H5F_OBJ_DATASET ));
-    LOG4CXX_TRACE(m_log, "    Groups open:      " << H5Fget_obj_count( this->m_fid, H5F_OBJ_GROUP ));
-    LOG4CXX_TRACE(m_log, "    Attributes open:  " << H5Fget_obj_count( this->m_fid, H5F_OBJ_ATTR ));
-    LOG4CXX_TRACE(m_log, "    Datatypes open:   " << H5Fget_obj_count( this->m_fid, H5F_OBJ_DATATYPE ));
-    LOG4CXX_TRACE(m_log, "    Files open:       " << H5Fget_obj_count( this->m_fid, H5F_OBJ_FILE ));
-    LOG4CXX_TRACE(m_log, "    Sum objects open: " << H5Fget_obj_count( this->m_fid, H5F_OBJ_ALL ));
+    LOG4CXX_TRACE(m_log, "    DataSets open:    " << H5Fget_obj_count( m_fid, H5F_OBJ_DATASET ));
+    LOG4CXX_TRACE(m_log, "    Groups open:      " << H5Fget_obj_count( m_fid, H5F_OBJ_GROUP ));
+    LOG4CXX_TRACE(m_log, "    Attributes open:  " << H5Fget_obj_count( m_fid, H5F_OBJ_ATTR ));
+    LOG4CXX_TRACE(m_log, "    Datatypes open:   " << H5Fget_obj_count( m_fid, H5F_OBJ_DATATYPE ));
+    LOG4CXX_TRACE(m_log, "    Files open:       " << H5Fget_obj_count( m_fid, H5F_OBJ_FILE ));
+    LOG4CXX_TRACE(m_log, "    Sum objects open: " << H5Fget_obj_count( m_fid, H5F_OBJ_ALL ));
 }
 
 int main()
