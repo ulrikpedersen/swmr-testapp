@@ -10,6 +10,7 @@
 
 #include <string>
 #include <vector>
+#include <stdint.h>
 #include "hdf5.h"
 
 
@@ -17,21 +18,21 @@ class Frame {
 public:
     Frame();
     Frame(const Frame& frame);
-    Frame(const std::vector<hsize_t>& dims, unsigned int * pdata);
-    Frame(const std::vector<hsize_t>& dims, const unsigned int * pdata);
+    Frame(const std::vector<hsize_t>& dims, uint32_t * pdata);
+    Frame(const std::vector<hsize_t>& dims, const uint32_t * pdata);
     Frame(const std::string fname, const std::string dset);
     ~Frame();
 
     const std::vector<hsize_t>& dimensions();
-    unsigned int * create_buffer();
-    const unsigned int * pdata();
+    uint32_t * create_buffer();
+    const uint32_t * pdata();
 
     // Operators
     Frame& operator=(const Frame& src); // assignment
     bool operator==(const Frame& cmp);  // equal
     bool operator!=(const Frame& cmp);  // not equal
 private:
-    unsigned int *m_pdata;
+    uint32_t *m_pdata;
     std::vector<hsize_t> m_dims;
 
     void copy(const Frame& src);

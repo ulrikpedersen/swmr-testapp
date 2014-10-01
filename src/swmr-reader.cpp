@@ -91,7 +91,7 @@ private:
     hsize_t m_maxdims[3];
 
     Frame m_testimg;
-    unsigned int * m_pdata;
+    uint32_t * m_pdata;
     unsigned long long m_latest_framenumber;
     double m_polltime;
     std::vector<bool> m_checks;
@@ -117,9 +117,9 @@ SWMRReader::~SWMRReader()
         this->m_fid = -1;
     }
 
-    if (this->m_pdata != NULL) {
-        delete[] this->m_pdata;
-        this->m_pdata = NULL;
+    if (m_pdata != NULL) {
+        free(m_pdata);
+        m_pdata = NULL;
     }
 }
 

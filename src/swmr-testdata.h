@@ -13,7 +13,7 @@ const unsigned int swmr_iterations = 20;
 // 2 small images of 3x4
 const unsigned long long swmr_testdata_rows = 3;
 const unsigned long long swmr_testdata_cols = 4;
-const unsigned int swmr_testdata[2][3][4] = { {
+const uint32_t swmr_testdata[2][3][4] =  { {
                                            {     1,    45,   343,   675},
                                            {   643,  2143,   875,    34},
                                            {   842,   482,  5000,  3762}

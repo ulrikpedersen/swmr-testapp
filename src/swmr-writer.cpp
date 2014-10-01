@@ -76,7 +76,7 @@ void SWMRWriter::get_test_data()
     vector<hsize_t> dims(2);
     dims[0] = swmr_testdata_cols;
     dims[1] = swmr_testdata_rows;
-    this->img = Frame(dims, (const unsigned int*)(swmr_testdata[0]));
+    this->img = Frame(dims, (const uint32_t*)(swmr_testdata[0]));
 }
 
 
@@ -143,7 +143,7 @@ void SWMRWriter::write_test_data(unsigned int niter, unsigned int nframes_cache)
         /* Write the data to the hyperslab */
         LOG4CXX_TRACE(log, "Writing. Offset: " << offset[2] << ", "
                       << offset[1] << ", " << offset[0]);
-        status = H5Dwrite(dataset, H5T_NATIVE_INT, dataspace, filespace,
+        status = H5Dwrite(dataset, H5T_NATIVE_UINT32, dataspace, filespace,
         H5P_DEFAULT, this->img.pdata());
         assert(status >= 0);
 

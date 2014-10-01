@@ -4,6 +4,7 @@
 #include <algorithm>
 
 #include <cstring>
+#include <cstdlib>
 #include <assert.h>
 
 #include "frame.h"
@@ -22,21 +23,21 @@ Frame::Frame(const Frame& frame)
 }
 
 
-Frame::Frame(const std::vector<hsize_t>& dims, unsigned int* pdata)
+Frame::Frame(const std::vector<hsize_t>& dims, uint32_t* pdata)
 : m_pdata(NULL)
 {
     m_dims = dims;   // copy the input dimensions
     m_pdata = pdata; // copy (shallow) the data pointer
 }
 
-Frame::Frame(const std::vector<hsize_t>& dims, const unsigned int* pdata)
+Frame::Frame(const std::vector<hsize_t>& dims, const uint32_t* pdata)
 : m_pdata(NULL)
 {
     m_dims = dims;   // copy the input dimensions
 
     unsigned long long nitems = Frame::num_items(dims);
-    m_pdata = new unsigned int[ nitems ];
-    memcpy(m_pdata, pdata, nitems * sizeof(unsigned int));
+    m_pdata = (uint32_t*)calloc(nitems, sizeof(uint32_t));
+    memcpy(m_pdata, pdata, nitems * sizeof(uint32_t));
 }
 
 Frame::Frame(const std::string fname, const std::string dset)
@@ -54,15 +55,15 @@ const std::vector<hsize_t>& Frame::dimensions()
     return m_dims;
 }
 
-unsigned int* Frame::create_buffer()
+uint32_t* Frame::create_buffer()
 {
     unsigned long long nitems = this->num_items();
     assert( nitems > 0);
-    unsigned int * new_buffer = new unsigned int(nitems);
+    uint32_t * new_buffer = (uint32_t *)calloc(nitems, sizeof(uint32_t));
     return new_buffer;
 }
 
-const unsigned int* Frame::pdata()
+const uint32_t* Frame::pdata()
 {
     return m_pdata;
 }
