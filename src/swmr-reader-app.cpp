@@ -43,7 +43,7 @@ int get_options(int ac, char* av[], po::variables_map& vm)
                     "Name of HDF5 SWMR dataset to monitor")
             ("testdatafile,f", po::value<string>(),
                     "HDF5 reference test data file name")
-            ("testdataset,s", po::value<string>()->default_value("data"),
+            ("testdataset,d", po::value<string>()->default_value("data"),
                     "HDF5 reference dataset name")
             ("nframes,n", po::value<int>()->default_value(-1),
                     "Number of frames to expect in input dataset (-1: unknown)")
