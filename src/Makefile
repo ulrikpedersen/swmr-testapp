@@ -5,7 +5,7 @@ CC=gcc
 CFLAGS := $(CFLAGS) $(INC) -g
 ODIR=obj
 
-LIBS := -lhdf5 -llog4cxx -lz -lrt
+LIBS := -lhdf5 -llog4cxx -lz -lrt -lboost_program_options
 LDFLAGS := $(LDFLAGS) -L$(HDF5_SWMR)/lib $(LIBS)
 BINDIR=..
 
