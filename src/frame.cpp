@@ -70,18 +70,18 @@ Frame::Frame(const std::string fname, const std::string dsetname)
     LOG4CXX_DEBUG(m_log, "Test data ("<< fname <<") Dims: " << dims[0]
                          << ", " << dims[1] << ", " << dims[2]);
 
-    hsize_t offset[3] = { 0, 0, m_dims[2] - 1 };
-    assert(offset[2] >= 0);
-    m_dims[2] = 1; // We only want to read out one slice
+    hsize_t offset[3] = { m_dims[0] - 1, 0, 0 };
+    assert(offset[0] >= 0);
+    m_dims[0] = 1; // We only want to read out one slice
     assert(H5Sselect_hyperslab(dspace, H5S_SELECT_SET, offset,
                                NULL, dims, NULL) >= 0);
     hid_t memspace;
-    memspace = H5Screate_simple(2, dims, NULL);
+    memspace = H5Screate_simple(2, dims+1, NULL);
     assert(memspace >= 0);
-    herr_t status = H5Sselect_hyperslab(memspace, H5S_SELECT_SET, offset,
-                                        NULL, dims, NULL);
+    herr_t status = H5Sselect_hyperslab(memspace, H5S_SELECT_SET, offset+1,
+                                        NULL, dims+1, NULL);
     assert(status >= 0);
-    m_dims.resize(2);
+    m_dims.erase(m_dims.begin());
     assert(m_dims.size() == 2);
 
     if (m_pdata != NULL) {

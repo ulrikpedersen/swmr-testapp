@@ -100,20 +100,20 @@ void SWMRWriter::write_test_data(unsigned int niter, unsigned int nframes_cache)
     hsize_t size[3];
 
     assert(this->img.dimensions().size() == 2);
-    chunk_dims[0] = this->img.dimensions()[0];
-    chunk_dims[1] = this->img.dimensions()[1];
-    chunk_dims[2] = nframes_cache;
+    chunk_dims[0] = nframes_cache;
+    chunk_dims[1] = this->img.dimensions()[0];
+    chunk_dims[2] = this->img.dimensions()[1];
 
-    max_dims[0] = this->img.dimensions()[0];
-    max_dims[1] = this->img.dimensions()[1];
-    max_dims[2] = H5S_UNLIMITED;
+    max_dims[0] = H5S_UNLIMITED;
+    max_dims[1] = this->img.dimensions()[0];
+    max_dims[2] = this->img.dimensions()[1];
 
-    img_dims[0] = this->img.dimensions()[0];
-    img_dims[1] = this->img.dimensions()[1];
-    img_dims[2] = 1;
-    size[0] = this->img.dimensions()[0];
-    size[1] = this->img.dimensions()[1];
-    size[2] = 1;
+    img_dims[0] = 1;
+    img_dims[1] = this->img.dimensions()[0];
+    img_dims[2] = this->img.dimensions()[1];
+    size[0] = 1;
+    size[1] = this->img.dimensions()[0];
+    size[2] = this->img.dimensions()[1];
 
     /* Create the dataspace with the given dimensions - and max dimensions */
     dataspace = H5Screate_simple(3, img_dims, max_dims);
@@ -148,15 +148,15 @@ void SWMRWriter::write_test_data(unsigned int niter, unsigned int nframes_cache)
         assert(status >= 0);
 
         /* Write the data to the hyperslab */
-        LOG4CXX_TRACE(log, "Writing. Offset: " << offset[2] << ", "
-                      << offset[1] << ", " << offset[0]);
+        LOG4CXX_TRACE(log, "Writing. Offset: " << offset[0] << ", "
+                      << offset[1] << ", " << offset[2]);
         status = H5Dwrite(dataset, H5T_NATIVE_UINT32, dataspace, filespace,
         H5P_DEFAULT, this->img.pdata());
         assert(status >= 0);
 
         /* Increment offsets and dimensions as appropriate */
-        offset[2]++;
-        size[2]++;
+        offset[0]++;
+        size[0]++;
 
         LOG4CXX_TRACE(log, "Flushing");
         assert(H5Dflush(dataset) >= 0);

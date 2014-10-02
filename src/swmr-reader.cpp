@@ -178,9 +178,9 @@ unsigned long long SWMRReader::latest_frame_number()
 
     H5Sget_simple_extent_dims(dspace, m_dims, m_maxdims);
     /* Check the image dimensions match the test image */
-    assert(m_testimg.dimensions()[0] == m_dims[0]);
-    assert(m_testimg.dimensions()[1] == m_dims[1]);
-    if (m_dims[2] > m_latest_framenumber) {
+    assert(m_testimg.dimensions()[0] == m_dims[1]);
+    assert(m_testimg.dimensions()[1] == m_dims[2]);
+    if (m_dims[0] > m_latest_framenumber) {
         LOG4CXX_DEBUG(m_log, "Got dimensions: " << m_dims[0] << ", "
                               << m_dims[1] << ", " << m_dims[2]);
     } else {
@@ -190,7 +190,7 @@ unsigned long long SWMRReader::latest_frame_number()
     assert(H5Dclose(dset) >= 0);
     assert(H5Sclose(dspace) >= 0);
 
-    return m_dims[2];
+    return m_dims[0];
 }
 
 void SWMRReader::read_latest_frame()
@@ -206,17 +206,17 @@ void SWMRReader::read_latest_frame()
     dspace = H5Dget_space(dset);
     assert(dspace >= 0);
 
-    hsize_t offset[3] = { 0, 0, m_dims[2] - 1 };
-    assert(offset[2] >= 0);
-    hsize_t img_size[3] = { m_dims[0], m_dims[1], 1 };
+    hsize_t offset[3] = { m_dims[0] - 1, 0, 0 };
+    assert(offset[0] >= 0);
+    hsize_t img_size[3] = { 1, m_dims[1], m_dims[2] };
     assert(H5Sselect_hyperslab(dspace, H5S_SELECT_SET, offset,
                                NULL, img_size, NULL) >= 0);
 
     hid_t memspace;
-    memspace = H5Screate_simple(2, m_dims, NULL);
+    memspace = H5Screate_simple(2, m_dims+1, NULL);
     assert(memspace >= 0);
-    status = H5Sselect_hyperslab(memspace, H5S_SELECT_SET, offset,
-                                 NULL, img_size, NULL);
+    status = H5Sselect_hyperslab(memspace, H5S_SELECT_SET, offset+1,
+                                 NULL, img_size+1, NULL);
     assert(status >= 0);
 
     LOG4CXX_DEBUG(m_log, "Reading dataset: size = "
@@ -227,7 +227,7 @@ void SWMRReader::read_latest_frame()
                      memspace, dspace, H5P_DEFAULT,
                      static_cast<void*>(m_pdata));
     assert(status >= 0);
-    m_latest_framenumber = m_dims[2];
+    m_latest_framenumber = m_dims[0];
 
     // Cleanup
     this->print_open_objects();
@@ -242,8 +242,8 @@ bool SWMRReader::check_dataset()
     Frame readimg(m_testimg.dimensions(), m_pdata);
     assert(readimg.dimensions()[0] == m_testimg.dimensions()[0]);
     assert(readimg.dimensions()[1] == m_testimg.dimensions()[1]);
-    assert(readimg.dimensions()[0] == m_dims[0]);
-    assert(readimg.dimensions()[1] == m_dims[1]);
+    assert(readimg.dimensions()[0] == m_dims[1]);
+    assert(readimg.dimensions()[1] == m_dims[2]);
 
     bool result = readimg == m_testimg;
     if (result != true) {
