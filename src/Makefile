@@ -15,7 +15,7 @@ DEPS = $(patsubst %,$(HDF5_SWMR)/include/%,$(_DEPS))
 _WROBJ = frame.o swmr-writer.o
 WROBJ = $(patsubst %,$(ODIR)/%,$(_WROBJ))
 
-_RDOBJ = frame.o swmr-reader.o
+_RDOBJ = frame.o swmr-reader.o swmr-reader-app.o
 RDOBJ = $(patsubst %,$(ODIR)/%,$(_RDOBJ))
 
 all: $(BINDIR)/swmr-writer $(BINDIR)/swmr-reader

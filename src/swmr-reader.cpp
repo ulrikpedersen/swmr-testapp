@@ -1,5 +1,4 @@
 #include <iostream>
-#include <string>
 #include <vector>
 #include <assert.h>
 
@@ -10,9 +9,8 @@
 using namespace log4cxx;
 using namespace log4cxx::xml;
 
-#include "hdf5.h"
 #include "swmr-testdata.h"
-#include "frame.h"
+#include "swmr-reader.h"
 
 using namespace std;
 
@@ -64,41 +62,12 @@ double TimeStamp::seconds_until_now()
     return stampdiff;
 }
 
-class SWMRReader {
-public:
-    SWMRReader(const char * fname);
-    ~SWMRReader();
-    void open_file();
-    void get_test_data();
-    void get_test_data(string fname, string dsetname);
-    unsigned long long latest_frame_number();
-    void read_latest_frame();
-    bool check_dataset();
-    void monitor_dataset(double timeout = 2.0);
-
-private:
-    void print_open_objects();
-
-    LoggerPtr m_log;
-    string m_filename;
-    hid_t m_fid;
-    hsize_t m_dims[3];
-    hsize_t m_maxdims[3];
-
-    Frame m_testimg;
-    uint32_t * m_pdata;
-    unsigned long long m_latest_framenumber;
-    double m_polltime;
-    std::vector<bool> m_checks;
-};
-
-SWMRReader::SWMRReader(const char * fname)
+SWMRReader::SWMRReader()
 {
     m_log = Logger::getLogger("SWMRReader");
-    LOG4CXX_DEBUG(m_log, "SWMRReader constructor. Filename: " << fname);
-    m_filename = fname;
+    LOG4CXX_DEBUG(m_log, "SWMRReader constructor");
+    m_filename = "";
     m_fid = -1;
-    m_polltime = 0.2;
     m_pdata = NULL;
     m_latest_framenumber = 0;
 }
@@ -118,8 +87,11 @@ SWMRReader::~SWMRReader()
     }
 }
 
-void SWMRReader::open_file()
+void SWMRReader::open_file(const string& fname, const string& dsetname)
 {
+    m_filename = fname;
+    m_dsetname = dsetname;
+
     // sanity check
     assert(m_filename != "");
 
@@ -146,7 +118,7 @@ void SWMRReader::get_test_data()
     m_pdata = m_testimg.create_buffer();
 }
 
-void SWMRReader::get_test_data(string fname, string dsetname)
+void SWMRReader::get_test_data(const string& fname, const string& dsetname)
 {
     LOG4CXX_DEBUG(m_log, "Getting test data from: " << fname << "/" << dsetname);
     m_testimg = Frame(fname, dsetname);
@@ -159,8 +131,10 @@ unsigned long long SWMRReader::latest_frame_number()
 {
     herr_t status;
     hid_t dset;
+    // sanity check
+    assert(m_dsetname != "");
     assert(m_fid >= 0);
-    dset = H5Dopen2(m_fid, "data", H5P_DEFAULT);
+    dset = H5Dopen2(m_fid, m_dsetname.c_str(), H5P_DEFAULT);
     assert(dset >= 0);
 
     /* Get the dataspace */
@@ -195,8 +169,10 @@ void SWMRReader::read_latest_frame()
 {
     herr_t status;
     hid_t dset;
+    // sanity check
+    assert(m_dsetname != "");
     assert(m_fid >= 0);
-    dset = H5Dopen2(m_fid, "data", H5P_DEFAULT);
+    dset = H5Dopen2(m_fid, m_dsetname.c_str(), H5P_DEFAULT);
     assert(dset >= 0);
 
     /* Get the dataspace */
@@ -250,7 +226,7 @@ bool SWMRReader::check_dataset()
     return result;
 }
 
-void SWMRReader::monitor_dataset(double timeout)
+void SWMRReader::monitor_dataset(double timeout, double polltime)
 {
     bool carryon = true;
     bool check_result;
@@ -270,7 +246,7 @@ void SWMRReader::monitor_dataset(double timeout)
                              << " seconds since last read");
                 carryon = false;
             } else {
-                usleep((unsigned int) (m_polltime * 1000000));
+                usleep((unsigned int) (polltime * 1000000));
             }
         }
     }
@@ -284,26 +260,5 @@ void SWMRReader::print_open_objects()
     LOG4CXX_TRACE(m_log, "    Datatypes open:   " << H5Fget_obj_count( m_fid, H5F_OBJ_DATATYPE ));
     LOG4CXX_TRACE(m_log, "    Files open:       " << H5Fget_obj_count( m_fid, H5F_OBJ_FILE ));
     LOG4CXX_TRACE(m_log, "    Sum objects open: " << H5Fget_obj_count( m_fid, H5F_OBJ_ALL ));
-}
-
-int main()
-{
-    DOMConfigurator::configure("Log4cxxConfig.xml");
-    LoggerPtr log(Logger::getLogger("main"));
-
-    LOG4CXX_INFO(log, "Creating a SWMR Reader object");
-    SWMRReader srd = SWMRReader("swmr.h5");
-
-    LOG4CXX_INFO(log, "Opening file");
-    srd.open_file();
-
-    LOG4CXX_INFO(log, "Getting test data");
-    srd.get_test_data();
-    //srd.get_test_data(string("testimg.h5"), string("data"));
-
-    LOG4CXX_INFO(log, "Starting monitor");
-    srd.monitor_dataset();
-
-    return 0;
 }
 
