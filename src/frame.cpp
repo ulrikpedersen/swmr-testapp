@@ -41,7 +41,7 @@ Frame::Frame(const std::vector<hsize_t>& dims, const uint32_t* pdata)
     memcpy(m_pdata, pdata, nitems * sizeof(uint32_t));
 }
 
-Frame::Frame(const std::string fname, const std::string dsetname)
+Frame::Frame(const std::string& fname, const std::string& dsetname)
 : m_pdata(NULL), m_log(Logger::getLogger("Frame"))
 {
     /* Create file access property list */

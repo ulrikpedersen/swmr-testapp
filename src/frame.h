@@ -25,7 +25,7 @@ public:
     Frame(const Frame& frame);
     Frame(const std::vector<hsize_t>& dims, uint32_t * pdata);
     Frame(const std::vector<hsize_t>& dims, const uint32_t * pdata);
-    Frame(const std::string fname, const std::string dset);
+    Frame(const std::string& fname, const std::string& dset);
     ~Frame();
 
     const std::vector<hsize_t>& dimensions();
