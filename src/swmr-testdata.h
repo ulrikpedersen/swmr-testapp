@@ -8,6 +8,8 @@
 #ifndef SWMR_TESTDATA_H_
 #define SWMR_TESTDATA_H_
 
+#include <stdint.h>
+
 const unsigned int swmr_iterations = 20;
 
 // 2 small images of 3x4
