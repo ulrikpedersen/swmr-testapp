@@ -33,6 +33,31 @@ void option_dependency(const po::variables_map& vm,
 int get_options(int ac, char* av[], po::variables_map& vm)
 {
     try {
+    
+        po::options_description global("Options");
+        global.add_options()
+            ("help,h", "Produce help message and quit")
+            ("command", po::value<std::string>(), "Command to run (read|write)")
+            ("subargs", po::value<std::vector<std::string> >(), "Arguments for command");
+        po::positional_options_description global_pos;
+        global_pos.add("command", 1).add("subargs");
+        po::parsed_options parsed = po::command_line_parser(ac, av).
+            options(global).
+            positional(global_pos).
+            allow_unregistered().
+            run();
+        po::store(parsed, vm);
+        std::string cmd = vm["command"].as<std::string>();
+        
+        if (cmd == "read") {
+        
+        } else if (cmd == "write") {
+        
+        } else {
+            cerr << "ERROR: unsupported command: " << cmd << endl;
+            return -1;
+        }
+
         string desc_string = "Usage:\n  swmr-reader [options] [DATAFILE]\n\n"
                              "    DATAFILE: The HDF5 SWMR datafile to read from.\n\n"
                              "Options";

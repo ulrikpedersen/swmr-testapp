@@ -12,25 +12,18 @@ BINDIR=..
 _DEPS = hdf5.h
 DEPS = $(patsubst %,$(HDF5_SWMR)/include/%,$(_DEPS))
 
-_WROBJ = frame.o swmr-writer.o
-WROBJ = $(patsubst %,$(ODIR)/%,$(_WROBJ))
+_OBJ = frame.o swmr-reader.o swmr-writer.o swmr-demo.o
+OBJ = $(patsubst %,$(ODIR)/%,$(_OBJ))
 
-_RDOBJ = frame.o swmr-reader.o swmr-reader-app.o
-RDOBJ = $(patsubst %,$(ODIR)/%,$(_RDOBJ))
-
-all: $(BINDIR)/swmr-writer $(BINDIR)/swmr-reader
+all: $(BINDIR)/swmr
 
 # Compile
 $(ODIR)/%.o: %.cpp $(DEPS)
 	mkdir -p $(ODIR)
 	$(CC) -c -o $@ $< $(CFLAGS)
 
-# Link the writer application
-$(BINDIR)/swmr-writer: $(WROBJ)
-	$(CC) -o $@ $^ $(LDFLAGS)
-
-# Link the reader application
-$(BINDIR)/swmr-reader: $(RDOBJ)
+# Link the main application
+$(BINDIR)/swmr: $(OBJ)
 	$(CC) -o $@ $^ $(LDFLAGS)
 
 .PHONY: clean
