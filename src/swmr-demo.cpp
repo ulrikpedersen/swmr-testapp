@@ -34,50 +34,34 @@ int get_options(int ac, char* av[], po::variables_map& vm)
 {
     try {
     
-        po::options_description global("Options");
-        global.add_options()
+        po::options_description global_opts("Options");
+        global_opts.add_options()
             ("help,h", "Produce help message and quit")
             ("command", po::value<std::string>(), "Command to run (read|write)")
             ("subargs", po::value<std::vector<std::string> >(), "Arguments for command");
         po::positional_options_description global_pos;
-        global_pos.add("command", 1).add("subargs");
+        global_pos.add("command", 1).add("subargs", -1);
         po::parsed_options parsed = po::command_line_parser(ac, av).
-            options(global).
+            options(global_opts).
             positional(global_pos).
             allow_unregistered().
             run();
         po::store(parsed, vm);
         std::string cmd = vm["command"].as<std::string>();
-        
-        if (cmd == "read") {
-        
-        } else if (cmd == "write") {
-        
-        } else {
-            cerr << "ERROR: unsupported command: " << cmd << endl;
-            return -1;
-        }
 
-        string desc_string = "Usage:\n  swmr-reader [options] [DATAFILE]\n\n"
-                             "    DATAFILE: The HDF5 SWMR datafile to read from.\n\n"
+        string desc_string = "Usage:\n  swmr [options] [DATAFILE]\n\n"
+                             "    DATAFILE: The HDF5 SWMR datafile to operate on.\n\n"
                              "Options";
-        po::options_description desc(desc_string);
-        desc.add_options()
+        
+        po::options_description common_opts(desc_string);
+        common_opts.add_options()
             ("help,h", "Produce help message and quit")
             ("dataset,s", po::value<string>()->default_value("data"),
-                    "Name of HDF5 SWMR dataset to monitor")
+                    "Name of HDF5 SWMR dataset to use")
             ("testdatafile,f", po::value<string>(),
                     "HDF5 reference test data file name")
             ("testdataset,d", po::value<string>()->default_value("data"),
-                    "HDF5 reference dataset name")
-            ("nframes,n", po::value<int>()->default_value(-1),
-                    "Number of frames to expect in input dataset (-1: unknown)")
-            ("timeout,t", po::value<double>()->default_value(2.0),
-                    "Timeout [sec] waiting for new data")
-            ("polltime,p", po::value<double>()->default_value(0.20),
-                    "Monitor polling time [sec]")
-        ;
-
+                    "HDF5 reference dataset name");
         // Hidden options, will be allowed both on command line and
         // in config file, but will not be shown to the user.
         po::options_description hidden("Hidden options");
@@ -85,9 +69,8 @@ int get_options(int ac, char* av[], po::variables_map& vm)
             ("datafile", po::value<string>()->default_value("swmr.h5"),
                     "HDF5 SWMR input filename")
         ;
-
         po::options_description cmdline_options;
-        cmdline_options.add(desc).add(hidden);
+        cmdline_options.add(common_opts).add(hidden);
 
         po::positional_options_description p;
         p.add("datafile", -1);
@@ -95,11 +78,56 @@ int get_options(int ac, char* av[], po::variables_map& vm)
               options(cmdline_options).positional(p).run(), vm);
         notify(vm);
 
-        po::store(po::parse_command_line(ac, av, desc), vm);
+        if (cmd == "read") {
+            po::options_description read_opts("write options");
+            read_opts.add_options()
+                    ("nframes,n", po::value<int>()->default_value(-1),
+                            "Number of frames to expect in input dataset (-1: unknown)")
+                    ("timeout,t", po::value<double>()->default_value(2.0),
+                            "Timeout [sec] waiting for new data")
+                    ("polltime,p", po::value<double>()->default_value(0.20),
+                            "Monitor polling time [sec]");
+
+            // Collect all the unrecognized options from the first pass. This will include the
+            // (positional) command name, so we need to erase that.
+            std::vector<std::string> opts = po::collect_unrecognized(parsed.options, po::include_positional);
+            opts.erase(opts.begin());
+
+            read_opts.add(cmdline_options);
+            // Parse again...
+            po::store(po::command_line_parser(opts).options(read_opts).run(), vm);
+
+        } else if (cmd == "write") {
+            po::options_description write_opts("write options");
+            write_opts.add_options()
+                    ("nframes,n", po::value<int>()->default_value(-1),
+                            "Number of frames to expect in input dataset (-1: unknown)")
+                    ("timeout,t", po::value<double>()->default_value(2.0),
+                            "Timeout [sec] waiting for new data")
+                    ("polltime,p", po::value<double>()->default_value(0.20),
+                            "Monitor polling time [sec]");
+
+            // Collect all the unrecognized options from the first pass. This will include the
+            // (positional) command name, so we need to erase that.
+            std::vector<std::string> opts = po::collect_unrecognized(parsed.options, po::include_positional);
+            opts.erase(opts.begin());
+
+            // Parse again...
+            po::store(po::command_line_parser(opts).options(write_opts).run(), vm);
+
+
+        } else {
+            cerr << "ERROR: unsupported command: " << cmd << endl;
+            return -1;
+        }
+
+
+
+        po::store(po::parse_command_line(ac, av, common_opts), vm);
         po::notify(vm);
 
         if (vm.count("help")) {
-            cout << desc << endl;
+            cout << common_opts << endl;
             return 1;
         }
 
