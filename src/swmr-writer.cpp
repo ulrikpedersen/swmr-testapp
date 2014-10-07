@@ -191,8 +191,8 @@ int main()
     swr.create_file();
 
     LOG4CXX_INFO(log, "Getting test data");
-    swr.get_test_data();
-    //swr.get_test_data(string("testimg.h5"), string("data"));
+    //swr.get_test_data();
+    swr.get_test_data(string("testimg.h5"), string("data"));
 
     LOG4CXX_INFO(log, "Writing 40 iterations");
     swr.write_test_data(40, 1);
@@ -200,3 +200,4 @@ int main()
     return 0;
 }
 
+*/

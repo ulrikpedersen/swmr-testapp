@@ -140,6 +140,42 @@ int get_options(int ac, char* av[], po::variables_map& vm)
     return 0;
 }
 
+/** Parse the main arguments and output subcommand and options
+ *
+ * The subcommand is interpreted as the second arg in av[] and the following
+ * arguments are parsed as options/args into the variable map vm.
+ *
+ * The subcommand is returned in the subcmd variable.
+ */
+void sub_cmd_options(int ac, char* av[], string& subcmd, po::variables_map& vm)
+{
+    char* argv[ac-1];
+    if (ac < 2) {
+        throw runtime_error("No subcommand found. What do you want?");
+    }
+
+    subcmd = av[1];
+    if (subcmd == "help" or subcmd == "h") {
+        subcmd = "help";
+        cout << "Available subcommands: [help|read|write] " << endl;
+    } else if (subcmd == "read" or subcmd == "r") {
+        subcmd = "read";
+    } else if (subcmd == "write" or subcmd == "w") {
+        subcmd = "write";
+    } else {
+        cerr << "ERROR: Unknown subcommand: " << subcmd << endl;
+        throw runtime_error("Unknown subcommand" );
+    }
+
+    argv[0] = av[0]; // The program name
+    for (int i = 2; i < ac; i++)
+    {
+        argv[i-1] = av[i];
+    }
+
+
+}
+
 int main(int ac, char* av[])
 {
     DOMConfigurator::configure("Log4cxxConfig.xml");
