@@ -15,8 +15,73 @@ namespace po = boost::program_options;
 using boost::any_cast;
 
 #include "swmr-reader.h"
+#include "swmr-writer.h"
 
 using namespace std;
+
+class SwmrDemoCli {
+public:
+    SwmrDemoCli();
+    ~SwmrDemoCli();
+    void main_args(int argc, char* argv[]);
+    void parse_options();
+    int run();
+    void log_options();
+
+private:
+    int run_read();
+    int run_write();
+
+    enum {help, read, write} m_subcmd;
+    LoggerPtr m_log;
+    int m_argc;
+    char **m_argv;
+    po::options_description m_options_description;
+    po::variables_map m_options;
+};
+
+SwmrDemoCli::SwmrDemoCli() :
+        m_argc(0), m_argv(NULL), m_subcmd(help)
+{
+    m_log = Logger::getLogger("SwmrDemoCli");
+}
+
+SwmrDemoCli::~SwmrDemoCli()
+{
+    if (m_argv != NULL) {
+        delete [] m_argv;
+    }
+}
+
+void SwmrDemoCli::main_args(int argc, char* argv[])
+{
+    m_argc = argc - 1;
+    m_argv = new char *[m_argc];
+
+    if (argc < 2) {
+        LOG4CXX_ERROR(m_log, "ERROR: No subcommand found" );
+        throw runtime_error("No subcommand found. What do you want?");
+    }
+
+    m_argv[0] = argv[0]; // The program name
+
+    string subcmd = argv[1];  // The program subcommand
+    if (subcmd == "help" or subcmd == "h") {
+        m_subcmd = help;
+    } else if (subcmd == "read" or subcmd == "r") {
+        m_subcmd = read;
+    } else if (subcmd == "write" or subcmd == "w") {
+        m_subcmd = write;
+    } else {
+        LOG4CXX_ERROR(m_log, "ERROR: Unknown subcommand: " << subcmd );
+    }
+
+    // Shift all the remaining args forward to remove the subcommand
+    for (int i = 2; i < argc; i++)
+    {
+        m_argv[i-1] = argv[i];
+    }
+}
 
 void option_dependency(const po::variables_map& vm,
                        const char* for_what,
@@ -29,205 +94,193 @@ void option_dependency(const po::variables_map& vm,
                               + required_option + "'.");
 }
 
-
-int get_options(int ac, char* av[], po::variables_map& vm)
+void SwmrDemoCli::parse_options()
 {
+    string desc_string;
+
+    po::options_description common_opts("Common options");
+    common_opts.add_options()
+        ("help,h", "Produce help message and quit")
+        ("dataset,s", po::value<string>()->default_value("data"),
+                "Name of HDF5 SWMR dataset to use")
+        ("testdatafile,f", po::value<string>(),
+                "HDF5 reference test data file name")
+        ("testdataset,d", po::value<string>()->default_value("data"),
+                "HDF5 reference dataset name");
+
+    po::options_description cmd_options_description("Command options");
+    switch(m_subcmd) {
+    case help:
+        // ignore any other options set
+        desc_string =  "Usage:\n  swmr SUBCMD [options] [DATAFILE]\n\n"
+                       "    SUBCMD:   The subcommand to run (help|read|write)\n"
+                       "    DATAFILE: The HDF5 SWMR datafile to operate on.\n\n"
+                       "Option Groups";
+        //cmd_options_description.add(po::options_description(desc_string)).add(common_opts);
+        break;
+    case read:
+        desc_string =  "Usage:\n  swmr read [options] [DATAFILE]\n\n"
+                       "    DATAFILE: The HDF5 SWMR datafile to operate on.\n\n"
+                       "Option Groups";
+        //cmd_options_description.add(po::options_description(desc_string)).add(common_opts);
+        cmd_options_description.add_options()
+            ("nframes,n", po::value<int>()->default_value(-1),
+                    "Number of frames to expect in input dataset (-1: unknown)")
+            ("timeout,t", po::value<double>()->default_value(2.0),
+                    "Timeout [sec] waiting for new data")
+            ("polltime,p", po::value<double>()->default_value(1.0),
+                    "Monitor polling time [sec]");
+        break;
+    case write:
+        desc_string =  "Usage:\n  swmr write [options] [DATAFILE]\n\n"
+                       "    DATAFILE: The HDF5 SWMR datafile to operate on.\n\n"
+                       "Option Groups";
+        //cmd_options_description.add(po::options_description(desc_string)).add(common_opts);
+        cmd_options_description.add_options()
+            ("niter,n", po::value<int>()->default_value(2),
+                    "Number of write iterations")
+            ("chunk,c", po::value<int>()->default_value(1),
+                    "Number of chunked frames");
+        break;
+    }
+
+    po::options_description options_description(desc_string);
+    options_description.add(common_opts).add(cmd_options_description);
+    m_options_description.add(options_description); // store the public options in the class
+
+    // Hidden options, will be allowed both on command line and
+    // in config file, but will not be shown to the user.
+    po::options_description hidden("Hidden options");
+    hidden.add_options()
+        ("datafile", po::value<string>()->default_value("swmr.h5"),
+                "HDF5 SWMR input filename");
+    po::positional_options_description p;
+    p.add("datafile", -1);
+    options_description.add(hidden);
+
     try {
-    
-        po::options_description global_opts("Options");
-        global_opts.add_options()
-            ("help,h", "Produce help message and quit")
-            ("command", po::value<std::string>(), "Command to run (read|write)")
-            ("subargs", po::value<std::vector<std::string> >(), "Arguments for command");
-        po::positional_options_description global_pos;
-        global_pos.add("command", 1).add("subargs", -1);
-        po::parsed_options parsed = po::command_line_parser(ac, av).
-            options(global_opts).
-            positional(global_pos).
-            allow_unregistered().
-            run();
-        po::store(parsed, vm);
-        std::string cmd = vm["command"].as<std::string>();
+        store(po::command_line_parser(m_argc, m_argv).
+              options(options_description).positional(p).run(), m_options);
+        notify(m_options);
 
-        string desc_string = "Usage:\n  swmr [options] [DATAFILE]\n\n"
-                             "    DATAFILE: The HDF5 SWMR datafile to operate on.\n\n"
-                             "Options";
-        
-        po::options_description common_opts(desc_string);
-        common_opts.add_options()
-            ("help,h", "Produce help message and quit")
-            ("dataset,s", po::value<string>()->default_value("data"),
-                    "Name of HDF5 SWMR dataset to use")
-            ("testdatafile,f", po::value<string>(),
-                    "HDF5 reference test data file name")
-            ("testdataset,d", po::value<string>()->default_value("data"),
-                    "HDF5 reference dataset name");
-        // Hidden options, will be allowed both on command line and
-        // in config file, but will not be shown to the user.
-        po::options_description hidden("Hidden options");
-        hidden.add_options()
-            ("datafile", po::value<string>()->default_value("swmr.h5"),
-                    "HDF5 SWMR input filename")
-        ;
-        po::options_description cmdline_options;
-        cmdline_options.add(common_opts).add(hidden);
-
-        po::positional_options_description p;
-        p.add("datafile", -1);
-        store(po::command_line_parser(ac, av).
-              options(cmdline_options).positional(p).run(), vm);
-        notify(vm);
-
-        if (cmd == "read") {
-            po::options_description read_opts("write options");
-            read_opts.add_options()
-                    ("nframes,n", po::value<int>()->default_value(-1),
-                            "Number of frames to expect in input dataset (-1: unknown)")
-                    ("timeout,t", po::value<double>()->default_value(2.0),
-                            "Timeout [sec] waiting for new data")
-                    ("polltime,p", po::value<double>()->default_value(0.20),
-                            "Monitor polling time [sec]");
-
-            // Collect all the unrecognized options from the first pass. This will include the
-            // (positional) command name, so we need to erase that.
-            std::vector<std::string> opts = po::collect_unrecognized(parsed.options, po::include_positional);
-            opts.erase(opts.begin());
-
-            read_opts.add(cmdline_options);
-            // Parse again...
-            po::store(po::command_line_parser(opts).options(read_opts).run(), vm);
-
-        } else if (cmd == "write") {
-            po::options_description write_opts("write options");
-            write_opts.add_options()
-                    ("nframes,n", po::value<int>()->default_value(-1),
-                            "Number of frames to expect in input dataset (-1: unknown)")
-                    ("timeout,t", po::value<double>()->default_value(2.0),
-                            "Timeout [sec] waiting for new data")
-                    ("polltime,p", po::value<double>()->default_value(0.20),
-                            "Monitor polling time [sec]");
-
-            // Collect all the unrecognized options from the first pass. This will include the
-            // (positional) command name, so we need to erase that.
-            std::vector<std::string> opts = po::collect_unrecognized(parsed.options, po::include_positional);
-            opts.erase(opts.begin());
-
-            // Parse again...
-            po::store(po::command_line_parser(opts).options(write_opts).run(), vm);
-
-
-        } else {
-            cerr << "ERROR: unsupported command: " << cmd << endl;
-            return -1;
-        }
-
-
-
-        po::store(po::parse_command_line(ac, av, common_opts), vm);
-        po::notify(vm);
-
-        if (vm.count("help")) {
-            cout << common_opts << endl;
-            return 1;
-        }
-
-        option_dependency(vm, "testdataset", "testdata");
+        option_dependency(m_options, "testdataset", "testdata");
     }
     catch(exception& e) {
-        cerr << "Error: " << e.what() << endl;
-        return -1;
+        LOG4CXX_ERROR(m_log, "Exception (rethrowing): " << e.what() );
+        throw;
     }
-    return 0;
 }
 
-/** Parse the main arguments and output subcommand and options
- *
- * The subcommand is interpreted as the second arg in av[] and the following
- * arguments are parsed as options/args into the variable map vm.
- *
- * The subcommand is returned in the subcmd variable.
- */
-void sub_cmd_options(int ac, char* av[], string& subcmd, po::variables_map& vm)
+void SwmrDemoCli::log_options()
 {
-    char* argv[ac-1];
-    if (ac < 2) {
-        throw runtime_error("No subcommand found. What do you want?");
-    }
-
-    subcmd = av[1];
-    if (subcmd == "help" or subcmd == "h") {
-        subcmd = "help";
-        cout << "Available subcommands: [help|read|write] " << endl;
-    } else if (subcmd == "read" or subcmd == "r") {
-        subcmd = "read";
-    } else if (subcmd == "write" or subcmd == "w") {
-        subcmd = "write";
-    } else {
-        cerr << "ERROR: Unknown subcommand: " << subcmd << endl;
-        throw runtime_error("Unknown subcommand" );
-    }
-
-    argv[0] = av[0]; // The program name
-    for (int i = 2; i < ac; i++)
-    {
-        argv[i-1] = av[i];
-    }
-
-
-}
-
-int main(int ac, char* av[])
-{
-    DOMConfigurator::configure("Log4cxxConfig.xml");
-    LoggerPtr log(Logger::getLogger("swmr-reader"));
-
-    po::variables_map options;
-    int parseerr = get_options(ac, av, options);
-    if (parseerr < 0) {
-        cerr << "Option parser error. Aborting" << endl;
-        return 2;
-    }
-    if (options.count("help")) return 0;
-
     // Debug - print out the options and values
+    LOG4CXX_DEBUG(m_log, "Subcommand: " << m_subcmd);
     po::variables_map::iterator it;
-    for (it = options.begin(); it != options.end(); ++it)
+    for (it = m_options.begin(); it != m_options.end(); ++it)
     {
         if (not it->second.empty()) {
             if (it->second.value().type() == typeid(int)) {
-                LOG4CXX_DEBUG(log, setw(14) << it->first << ": " << it->second.as<int>());
+                LOG4CXX_DEBUG(m_log, setw(14) << it->first << ": " << it->second.as<int>());
             } else if (it->second.value().type() == typeid(double)) {
-                LOG4CXX_DEBUG(log, setw(14) << it->first << ": " << it->second.as<double>());
+                LOG4CXX_DEBUG(m_log, setw(14) << it->first << ": " << it->second.as<double>());
             } else if (it->second.value().type() == typeid(string)) {
-                LOG4CXX_DEBUG(log, setw(14) << it->first << ": " << it->second.as<string>());
+                LOG4CXX_DEBUG(m_log, setw(14) << it->first << ": " << it->second.as<string>());
             } else {
-                LOG4CXX_DEBUG(log, setw(14) << it->first << ": <nknown datatype>");
+                LOG4CXX_DEBUG(m_log, setw(14) << it->first << ": <nknown datatype>");
             }
         } else {
-            LOG4CXX_DEBUG(log, setw(14) << it->first << ": <empty>");
+            LOG4CXX_DEBUG(m_log, setw(14) << it->first << ": <empty>");
         }
     } // End-of-Debug
+}
 
-    LOG4CXX_INFO(log, "Creating a SWMR Reader object");
-    SWMRReader srd = SWMRReader();
+int SwmrDemoCli::run()
+{
+    int ret = 0;
+    if (m_options.count("help")) {
+        m_subcmd = help;
+    }
 
-    LOG4CXX_INFO(log, "Opening file");
-    srd.open_file(options["datafile"].as<string>(),
-                  options["dataset"].as<string>());
+    switch(m_subcmd) {
+    case help:
+        cout << "Available subcommands: [help|read|write] " << endl;
+        cout << m_options_description << endl;
+        ret = 0;
+        break;
+    case read:
+        LOG4CXX_DEBUG(m_log, "Reading...");
+        this->run_read();
+        break;
+    case write:
+        LOG4CXX_DEBUG(m_log, "Writing...");
+        this->run_write();
+        break;
+    }
+    return ret;
+}
 
-    LOG4CXX_INFO(log, "Getting test data");
-    if (options.count("testdatafile")) {
-        srd.get_test_data(options["testdatafile"].as<string>(),
-                          options["testdataset"].as<string>());
+int SwmrDemoCli::run_read()
+{
+    string datafile(m_options["datafile"].as<string>());
+    string dataset(m_options["dataset"].as<string>());
+
+    LOG4CXX_INFO(m_log, "Creating a SWMR Reader object");
+    SWMRReader srd;
+
+    LOG4CXX_INFO(m_log, "Opening file (" << datafile << ")");
+    srd.open_file(datafile, dataset);
+
+    LOG4CXX_INFO(m_log, "Getting test data");
+    if (m_options.count("testdatafile")) {
+        string testdatafile(m_options["testdatafile"].as<string>());
+        string testdataset(m_options["testdataset"].as<string>());
+        srd.get_test_data(testdatafile, testdataset);
     } else {
         srd.get_test_data();
     }
 
-    LOG4CXX_INFO(log, "Starting monitor. Timeout = " << options["timeout"].as<double>()
-                 << " Polltime = " << options["polltime"].as<double>());
-    srd.monitor_dataset(options["timeout"].as<double>(),
-                        options["polltime"].as<double>());
+    LOG4CXX_INFO(m_log, "Starting monitor");
+    double polltime = m_options["polltime"].as<double>();
+    double timeout = m_options["timeout"].as<double>();
+    srd.monitor_dataset(timeout, polltime);
+    return 0;
+}
+
+int SwmrDemoCli::run_write()
+{
+    string datafile(m_options["datafile"].as<string>());
+    int niter = m_options["niter"].as<int>();
+    int nchunked_frames = m_options["chunk"].as<int>();
+
+    LOG4CXX_INFO(m_log, "Creating a SWMR Writer object (" << datafile << ")");
+    SWMRWriter swr = SWMRWriter(datafile);
+
+    LOG4CXX_INFO(m_log, "Creating file");
+    swr.create_file();
+
+    LOG4CXX_INFO(m_log, "Getting test data");
+    if (m_options.count("testdatafile")) {
+        string testdatafile(m_options["testdatafile"].as<string>());
+        string testdataset(m_options["testdataset"].as<string>());
+        swr.get_test_data(testdatafile, testdataset);
+    } else {
+        swr.get_test_data();
+    }
+
+    LOG4CXX_INFO(m_log, "Writing 40 iterations");
+    swr.write_test_data(niter, nchunked_frames);
 
     return 0;
-
 }
+
+
+int main(int ac, char* av[])
+{
+    DOMConfigurator::configure("Log4cxxConfig.xml");
+    SwmrDemoCli cli;
+    cli.main_args(ac, av);
+    cli.parse_options();
+    cli.log_options();
+    return cli.run();
+}
+
