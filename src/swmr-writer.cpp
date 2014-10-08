@@ -12,28 +12,12 @@ using namespace log4cxx::xml;
 
 #include "hdf5.h"
 #include "swmr-testdata.h"
-#include "frame.h"
+#include "swmr-writer.h"
 
 using namespace std;
 
-class SWMRWriter {
-public:
-    SWMRWriter(const char * fname);
-    ~SWMRWriter();
-    void create_file();
-    void get_test_data();
-    void get_test_data(string fname, string dsetname);
-    void write_test_data(unsigned int niter, unsigned int nframes_cache);
 
-private:
-    LoggerPtr log;
-    hid_t fid;
-    string filename;
-    Frame img;
-    double delay;
-};
-
-SWMRWriter::SWMRWriter(const char* fname)
+SWMRWriter::SWMRWriter(const string& fname)
 {
 
     this->log = Logger::getLogger("SWMRWriter");
@@ -78,7 +62,7 @@ void SWMRWriter::get_test_data()
     this->img = Frame(dims, (const uint32_t*)(swmr_testdata[0]));
 }
 
-void SWMRWriter::get_test_data(string fname, string dsetname)
+void SWMRWriter::get_test_data(const string& fname, const string& dsetname)
 {
     LOG4CXX_DEBUG(log, "Getting test data from file/dset: "
                   << fname << "/" << dsetname);
@@ -179,25 +163,3 @@ SWMRWriter::~SWMRWriter()
     }
 }
 
-int main()
-{
-    DOMConfigurator::configure("Log4cxxConfig.xml");
-    LoggerPtr log(Logger::getLogger("main"));
-
-    LOG4CXX_INFO(log, "Creating a SWMR Writer object");
-    SWMRWriter swr = SWMRWriter("swmr.h5");
-
-    LOG4CXX_INFO(log, "Creating file");
-    swr.create_file();
-
-    LOG4CXX_INFO(log, "Getting test data");
-    //swr.get_test_data();
-    swr.get_test_data(string("testimg.h5"), string("data"));
-
-    LOG4CXX_INFO(log, "Writing 40 iterations");
-    swr.write_test_data(40, 1);
-
-    return 0;
-}
-
-*/
