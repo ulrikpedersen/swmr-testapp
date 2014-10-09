@@ -33,10 +33,10 @@ Debug/
 .project
 .cproject
 .settings/
+.pydevproject
 
 # SWMR test binaries
-swmr-reader
-swmr-writer
+swmr
 
 # Generated HDF5 files
 *.h5
