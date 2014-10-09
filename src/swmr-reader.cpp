@@ -66,7 +66,7 @@ double TimeStamp::seconds_until_now()
 SWMRReader::SWMRReader()
 {
     m_log = Logger::getLogger("SWMRReader");
-    LOG4CXX_DEBUG(m_log, "SWMRReader constructor");
+    LOG4CXX_TRACE(m_log, "SWMRReader constructor");
     m_filename = "";
     m_fid = -1;
     m_pdata = NULL;
@@ -75,7 +75,7 @@ SWMRReader::SWMRReader()
 
 SWMRReader::~SWMRReader()
 {
-    LOG4CXX_DEBUG(m_log, "SWMRReader destructor");
+    LOG4CXX_TRACE(m_log, "SWMRReader destructor");
 
     if (m_fid >= 0) {
         assert(H5Fclose(m_fid) >= 0);
@@ -213,7 +213,7 @@ void SWMRReader::read_latest_frame()
 
 bool SWMRReader::check_dataset()
 {
-    LOG4CXX_DEBUG(m_log, "Creating new Frame with read data");
+    LOG4CXX_TRACE(m_log, "Creating new Frame with read data");
     Frame readimg(m_testimg.dimensions(), m_pdata);
     assert(readimg.dimensions()[0] == m_testimg.dimensions()[0]);
     assert(readimg.dimensions()[1] == m_testimg.dimensions()[1]);

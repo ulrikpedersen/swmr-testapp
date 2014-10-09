@@ -21,7 +21,7 @@ SWMRWriter::SWMRWriter(const string& fname)
 {
 
     this->log = Logger::getLogger("SWMRWriter");
-    LOG4CXX_DEBUG(log, "SWMRWriter constructor. Filename: " << fname);
+    LOG4CXX_TRACE(log, "SWMRWriter constructor. Filename: " << fname);
     this->filename = fname;
     this->fid = -1;
 }
@@ -114,7 +114,8 @@ void SWMRWriter::write_test_data(unsigned int niter,
 
     /* Enable SWMR writing mode */
     assert(H5Fstart_swmr_write(this->fid) >= 0);
-    LOG4CXX_INFO(log, "File writer in SWMR mode. Clients can start reading");
+    LOG4CXX_INFO(log, "##### SWMR mode ######");
+    LOG4CXX_INFO(log, "Clients can start reading");
 
     LOG4CXX_DEBUG(log, "Starting write loop. Iterations: " << niter);
     for (int i = 0; i < niter; i++) {
@@ -131,7 +132,7 @@ void SWMRWriter::write_test_data(unsigned int niter,
         assert(status >= 0);
 
         /* Write the data to the hyperslab */
-        LOG4CXX_TRACE(log, "Writing. Offset: " << offset[0] << ", "
+        LOG4CXX_DEBUG(log, "Writing. Offset: " << offset[0] << ", "
                       << offset[1] << ", " << offset[2]);
         status = H5Dwrite(dataset, H5T_NATIVE_UINT32, dataspace, filespace,
         H5P_DEFAULT, this->img.pdata());
@@ -159,7 +160,7 @@ void SWMRWriter::write_test_data(unsigned int niter,
 
 SWMRWriter::~SWMRWriter()
 {
-    LOG4CXX_DEBUG(log, "SWMRWriter destructor");
+    LOG4CXX_TRACE(log, "SWMRWriter destructor");
     if (this->fid >= 0) {
         assert(H5Fclose(this->fid) >= 0);
         this->fid = -1;
