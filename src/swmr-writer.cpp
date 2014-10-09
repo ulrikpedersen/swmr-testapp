@@ -24,7 +24,6 @@ SWMRWriter::SWMRWriter(const string& fname)
     LOG4CXX_DEBUG(log, "SWMRWriter constructor. Filename: " << fname);
     this->filename = fname;
     this->fid = -1;
-    this->delay = 0.2;
 }
 
 void SWMRWriter::create_file()
@@ -69,7 +68,9 @@ void SWMRWriter::get_test_data(const string& fname, const string& dsetname)
     this->img = Frame(fname, dsetname);
 }
 
-void SWMRWriter::write_test_data(unsigned int niter, unsigned int nframes_cache)
+void SWMRWriter::write_test_data(unsigned int niter,
+                                 unsigned int nframes_cache,
+                                 double period)
 {
     hid_t dataspace, dataset;
     hid_t filespace, memspace;
@@ -143,8 +144,10 @@ void SWMRWriter::write_test_data(unsigned int niter, unsigned int nframes_cache)
         LOG4CXX_TRACE(log, "Flushing");
         assert(H5Dflush(dataset) >= 0);
 
-        LOG4CXX_TRACE(log, "Sleeping " << this->delay << "s");
-        usleep((unsigned int) (this->delay * 1000000));
+        if (period > 0.0) {
+            LOG4CXX_TRACE(log, "Sleeping " << period << "s");
+            usleep((unsigned int) (period * 1000000));
+        }
     }
 
     LOG4CXX_DEBUG(log, "Closing intermediate open HDF objects");

@@ -14,14 +14,13 @@ public:
     void create_file();
     void get_test_data();
     void get_test_data(const std::string& fname, const std::string& dsetname);
-    void write_test_data(unsigned int niter, unsigned int nframes_cache);
+    void write_test_data(unsigned int niter, unsigned int nframes_cache, double period=0.2);
 
 private:
     LoggerPtr log;
     hid_t fid;
     std::string filename;
     Frame img;
-    double delay;
 };
 
 
