@@ -1,5 +1,6 @@
 #include <iostream>
 #include <vector>
+#include <algorithm>
 #include <assert.h>
 
 #include <ctime>
@@ -251,6 +252,25 @@ void SWMRReader::monitor_dataset(double timeout, double polltime)
         }
     }
 }
+
+
+int SWMRReader::report(std::ostream& out)
+{
+    ostringstream oss;
+    int fail_count = count(m_checks.begin(), m_checks.end(), false);
+    oss << endl << "======= SWMR reader report ========" << endl << endl
+        << " Number of checks: " << m_checks.size() << endl
+        << " Number of frames: " << m_latest_framenumber << endl;
+    if ( fail_count == 0 ) {
+        oss << " Result: Success! No failed checks" << endl;
+    } else {
+        oss << " Result: Failed checks: " << fail_count << endl;
+    }
+    out << oss.str();
+    LOG4CXX_INFO(m_log, oss.str());
+    return fail_count;
+}
+
 
 void SWMRReader::print_open_objects()
 {

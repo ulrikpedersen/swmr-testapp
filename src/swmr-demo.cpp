@@ -243,7 +243,8 @@ int SwmrDemoCli::run_read()
     double polltime = m_options["polltime"].as<double>();
     double timeout = m_options["timeout"].as<double>();
     srd.monitor_dataset(timeout, polltime);
-    return 0;
+    int fail_count = srd.report();
+    return fail_count;
 }
 
 int SwmrDemoCli::run_write()
