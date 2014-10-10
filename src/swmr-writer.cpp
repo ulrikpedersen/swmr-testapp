@@ -3,7 +3,6 @@
 #include <assert.h>
 
 #include <cstdlib>
-#include <ctime>
 
 #include <log4cxx/logger.h>
 #include <log4cxx/xml/domconfigurator.h>
@@ -12,6 +11,7 @@ using namespace log4cxx::xml;
 
 #include "hdf5.h"
 #include "swmr-testdata.h"
+#include "timestamp.h"
 #include "swmr-writer.h"
 
 using namespace std;
@@ -117,6 +117,8 @@ void SWMRWriter::write_test_data(unsigned int niter,
     LOG4CXX_INFO(log, "##### SWMR mode ######");
     LOG4CXX_INFO(log, "Clients can start reading");
 
+    TimeStamp ts;
+    ts.reset();
     LOG4CXX_DEBUG(log, "Starting write loop. Iterations: " << niter);
     for (int i = 0; i < niter; i++) {
         /* Extend the dataset  */
@@ -146,8 +148,13 @@ void SWMRWriter::write_test_data(unsigned int niter,
         assert(H5Dflush(dataset) >= 0);
 
         if (period > 0.0) {
-            LOG4CXX_TRACE(log, "Sleeping " << period << "s");
-            usleep((unsigned int) (period * 1000000));
+            double sleeptime = period - ts.seconds_until_now();
+            if (sleeptime > 0.0) {
+                LOG4CXX_TRACE(log, "Sleeping " << sleeptime << "sec (period: "
+                                   << period << "sec" );
+                usleep((unsigned int) (sleeptime * 1000000));
+            }
+            ts.reset();
         }
     }
 
