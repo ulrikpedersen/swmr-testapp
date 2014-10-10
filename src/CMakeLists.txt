@@ -43,3 +43,9 @@ file(GLOB swmr_SOURCES *.cpp)
 # Create an executable file called helloworld from sources:
 add_executable(swmr ${swmr_SOURCES})
 target_link_libraries(swmr z rt ${Boost_LIBRARIES} ${LOG4CXX_LIBRARIES} ${HDF5_LIBRARY})
+
+INSTALL(TARGETS swmr
+  RUNTIME DESTINATION bin
+  LIBRARY DESTINATION lib
+  ARCHIVE DESTINATION lib
+)

@@ -4,6 +4,10 @@ project(swmr-testapp)
 # States that CMake required version must be greater than 2.8
 cmake_minimum_required(VERSION 2.8)
 
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+
 # Appends the cmake/modules path inside the MAKE_MODULE_PATH variable which stores the
 # directories of additional CMake modules (ie. MacroOutOfSourceBuild.cmake):
 set(CMAKE_MODULE_PATH ${swmr-testapp_SOURCE_DIR}/cmake ${CMAKE_MODULE_PATH})
@@ -12,5 +16,5 @@ set(CMAKE_MODULE_PATH ${swmr-testapp_SOURCE_DIR}/cmake ${CMAKE_MODULE_PATH})
 #include(MacroOutOfSourceBuild)
 #macro_ensure_out_of_source_build("${PROJECT_NAME} requires an out of source build.")
 
-
 add_subdirectory(src)
+
