@@ -12,7 +12,7 @@ BINDIR=..
 _DEPS = hdf5.h
 DEPS = $(patsubst %,$(HDF5_SWMR)/include/%,$(_DEPS))
 
-_OBJ = frame.o swmr-reader.o swmr-writer.o swmr-demo.o
+_OBJ = timestamp.o frame.o swmr-reader.o swmr-writer.o swmr-demo.o
 OBJ = $(patsubst %,$(ODIR)/%,$(_OBJ))
 
 all: $(BINDIR)/swmr
