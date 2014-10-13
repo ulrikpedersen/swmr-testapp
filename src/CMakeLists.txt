@@ -37,22 +37,15 @@ ENDIF (NOT Boost_FOUND)
 
 ##### Find HDF5 with SWMR ###################
 message("\nSearching for HDF5 with SWMR")
-FIND_PATH(HDF5_INC_DIR
-          NAMES hdf5.h
-          PATHS /usr/include
-                /usr/local/include
-                ${swmr-testapp_SOURCE_DIR}/hdf5swmr/include)
-FIND_LIBRARY(HDF5_LIBRARY
-          NAMES hdf5
-          PATHS 
-                ${swmr-testapp_SOURCE_DIR}/hdf5swmr/lib
-                ${HDF5_ROOT})
+find_package(HDF5 
+             REQUIRED)
 
-IF(NOT HDF5_INC_DIR)
-   MESSAGE(FATAL_ERROR "Unable to find HDF5 SWMR install dir")
-ELSE(NOT HDF5_INC_DIR)
-   MESSAGE("Found HDF5 SWMR include files in: " ${HDF5_INC_DIR})
-ENDIF(NOT HDF5_INC_DIR)
+IF (NOT HDF5_FOUND)
+  message(FATAL_ERROR "Unable to find HDF5 installation")
+ELSE (NOT HDF5_FOUND)
+  message("HDF5 lib dir:        " ${HDF5_LIBRARY_DIRS})
+  message("HDF5 include files:  " ${HDF5_INCLUDE_DIRS})
+ENDIF (NOT HDF5_FOUND)
 ##### End of HDF5 with SWMR search ##########
 
 
@@ -69,7 +62,8 @@ FIND_LIBRARY(REALTIME_LIBRARY
 # Include the directory itself as a path to include directories
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
-include_directories(${HDF5_INC_DIR} ${LOG4CXX_INCLUDE_DIRS}/.. ${Boost_INCLUDE_DIRS})
+include_directories(${HDF5_INCLUDE_DIRS} ${LOG4CXX_INCLUDE_DIRS}/.. ${Boost_INCLUDE_DIRS})
+add_definitions(${HDF5_DEFINITIONS})
 
 # create a list of .cpp files from this directory
 file(GLOB swmr_SOURCES *.cpp)
@@ -77,7 +71,7 @@ file(GLOB swmr_SOURCES *.cpp)
 # Create an executable file called helloworld from sources:
 add_executable(swmr ${swmr_SOURCES})
 
-target_link_libraries(swmr ${ZLIB_LIBRARIES} ${Boost_LIBRARIES} ${LOG4CXX_LIBRARIES} ${HDF5_LIBRARY} ${REALTIME_LIBRARY})
+target_link_libraries(swmr ${ZLIB_LIBRARIES} ${Boost_LIBRARIES} ${LOG4CXX_LIBRARIES} ${HDF5_LIBRARIES} ${REALTIME_LIBRARY})
 
 INSTALL(TARGETS swmr
   RUNTIME DESTINATION bin
