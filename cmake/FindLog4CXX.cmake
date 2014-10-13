@@ -39,7 +39,11 @@ if (LOG4CXX_ROOT_DIR)
 endif ()
 
 find_package(PkgConfig)
-pkg_check_modules(PC_LOG4CXX log4cxx)
+IF (PkgConfig_FOUND)
+    message("using pkgconfig")
+    pkg_check_modules(PC_LOG4CXX log4cxx)
+ENDIF(PkgConfig_FOUND)
+
 set(LOG4CXX_DEFINITIONS ${PC_LOG4CXX_CFLAGS_OTHER})
 
 find_path(LOG4CXX_INCLUDE_DIR 
