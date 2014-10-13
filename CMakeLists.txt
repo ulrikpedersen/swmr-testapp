@@ -1,4 +1,25 @@
-# Project name is not mandatory, but you should use it
+# swmr-testapp project cmake build system
+# 
+# This project builds a single executable binary using a standard cmake build.
+#
+# Build instructions:
+#   cd swmr-testapp
+#   mkdir build
+#   cmake ..
+#   make
+#   sudo make install
+#
+# The cmake command will search for the dependencies in the usual places. If you
+# have custom installations of these libraries and headers, you can tell cmake
+# about it with the usual macros (cmake -D<macro>=/path/to/installation ..)
+#
+# The supported macros for the relevant dependencies are:
+#   HDF5_ROOT
+#   BOOST_ROOT
+#   LOG4CXX_ROOT_DIR
+
+
+# Project name 
 project(swmr-testapp)
 
 # States that CMake required version must be greater than 2.8
