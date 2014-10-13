@@ -42,3 +42,5 @@ swmr
 *.h5
 *.hdf
 *.hdf5
+
+build/

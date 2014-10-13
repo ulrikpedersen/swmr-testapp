@@ -3,6 +3,7 @@ compiler: gcc
 install:
   - sudo apt-get update -qq
   - sudo apt-get install -qq liblog4cxx10-dev zlib1g-dev libboost-program-options-dev
-  - make -C src/
-script: ./swmr write && ./swmr read
+  - cmake .
+  - make VERBOSE=1
+script: ldd src/swmr 
 
