@@ -6,6 +6,9 @@
 
 #include <log4cxx/logger.h>
 #include <log4cxx/xml/domconfigurator.h>
+#include <log4cxx/simplelayout.h>
+#include <log4cxx/consoleappender.h>
+#include <log4cxx/basicconfigurator.h>
 using namespace log4cxx;
 using namespace log4cxx::xml;
 
@@ -106,7 +109,9 @@ void SwmrDemoCli::parse_options()
         ("testdatafile,f", po::value<string>(),
                 "HDF5 reference test data file name")
         ("testdataset,d", po::value<string>()->default_value("data"),
-                "HDF5 reference dataset name");
+                "HDF5 reference dataset name")
+        ("logconfig,l", po::value<string>(),
+                "Log4CXX XML configuration file");
 
     po::options_description cmd_options_description("Command options");
     switch(m_subcmd) {
@@ -170,6 +175,10 @@ void SwmrDemoCli::parse_options()
     catch(exception& e) {
         LOG4CXX_ERROR(m_log, "Exception (rethrowing): " << e.what() );
         throw;
+    }
+
+    if (m_options.count("logconfig")) {
+        DOMConfigurator::configure(m_options["logconfig"].as<string>());
     }
 }
 
@@ -280,7 +289,12 @@ int SwmrDemoCli::run_write()
 
 int main(int ac, char* av[])
 {
-    DOMConfigurator::configure("Log4cxxConfig.xml");
+    // Create a default simple console appender for log4cxx.
+    // This can be overridden by the user on the CLI with the --logconfig option
+    ConsoleAppender * consoleAppender = new ConsoleAppender(LayoutPtr(new SimpleLayout()));
+    BasicConfigurator::configure(AppenderPtr(consoleAppender));
+    Logger::getRootLogger()->setLevel(Level::getInfo());
+
     SwmrDemoCli cli;
     cli.main_args(ac, av);
     cli.parse_options();

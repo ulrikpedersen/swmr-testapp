@@ -34,10 +34,10 @@ Debug/
 .cproject
 .pydevproject
 .settings/
+.pydevproject
 
 # SWMR test binaries
-swmr-reader
-swmr-writer
+swmr
 
 .scons*
 
