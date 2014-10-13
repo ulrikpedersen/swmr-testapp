@@ -51,7 +51,6 @@ ENDIF (NOT HDF5_FOUND)
 
 ##### Find other dependencies ############
 find_package(Log4CXX 0.10.0 REQUIRED)
-find_package(ZLIB REQUIRED)
 
 # librt is really only required if glibc =< 2.16
 FIND_LIBRARY(REALTIME_LIBRARY
@@ -71,7 +70,7 @@ file(GLOB swmr_SOURCES *.cpp)
 # Create an executable file called helloworld from sources:
 add_executable(swmr ${swmr_SOURCES})
 
-target_link_libraries(swmr ${ZLIB_LIBRARIES} ${Boost_LIBRARIES} ${LOG4CXX_LIBRARIES} ${HDF5_LIBRARIES} ${REALTIME_LIBRARY})
+target_link_libraries(swmr ${Boost_LIBRARIES} ${LOG4CXX_LIBRARIES} ${HDF5_LIBRARIES} ${REALTIME_LIBRARY})
 
 INSTALL(TARGETS swmr
   RUNTIME DESTINATION bin
