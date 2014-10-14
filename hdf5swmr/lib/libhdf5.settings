@@ -4,13 +4,13 @@
 General Information:
 -------------------
 		   HDF5 Version: 1.9.178-swmr_chksum5
-		  Configured on: Tue Oct 14 09:40:53 BST 2014
+		  Configured on: Tue Oct 14 15:07:11 BST 2014
 		  Configured by: up45@pc0009.cs.diamond.ac.uk
 		 Configure mode: development
 		    Host system: x86_64-unknown-linux-gnu
 	      Uname information: Linux pc0009.cs.diamond.ac.uk 2.6.32-431.20.3.el6.x86_64 #1 SMP Fri Jun 6 18:30:54 EDT 2014 x86_64 x86_64 x86_64 GNU/Linux
 		       Byte sex: little-endian
-		      Libraries: static
+		      Libraries: static, shared
 	     Installation point: /home/up45/github/swmr-testapp/hdf5swmr
 
 Compiling Options:
@@ -23,7 +23,7 @@ Compiling Options:
                        CPPFLAGS: 
                     H5_CPPFLAGS: -D_POSIX_C_SOURCE=199506L   -UNDEBUG -DH5D_DEBUG -DH5E_DEBUG -DH5F_DEBUG -DH5G_DEBUG -DH5HG_DEBUG -DH5I_DEBUG -DH5MM_DEBUG -DH5O_DEBUG -DH5P_DEBUG -DH5S_DEBUG -DH5T_DEBUG -DH5V_DEBUG -DH5Z_DEBUG -DH5_DEBUG_API
                     AM_CPPFLAGS: -D_LARGEFILE_SOURCE -D_LARGEFILE64_SOURCE -D_BSD_SOURCE 
-               Shared C Library: no
+               Shared C Library: yes
                Static C Library: yes
   Statically Linked Executables: 
                         LDFLAGS: 
