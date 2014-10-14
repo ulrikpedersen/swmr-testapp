@@ -6,7 +6,7 @@ install:
   - pwd
   - ls *
   - cmake -DHDF5_USE_STATIC_LIBRARIES=ON -DHDF5_ROOT=$(pwd)/hdf5swmr/ .
-  - make VERBOSE=1 && make install
+  - make VERBOSE=1 && sudo make install
 script: 
   - which swmr
   - ldd $(which swmr)
