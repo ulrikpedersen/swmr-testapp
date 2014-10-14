@@ -46,6 +46,15 @@ Configure and build like this:
     make VERBOSE=1
     make install
 
+Installing
+==========
+
+The make install command will install the application into a system location.
+
+If the dependent libraries are not installed in system directories it may be 
+useful to configure the build with the cmake variable 
+CMAKE_INSTALL_RPATH_USE_LINK_PATH=ON as this will retain the rpath in the binary
+and it will remember where to find its dependencies.
 
 Running
 =======
