@@ -37,6 +37,12 @@ ENDIF (NOT Boost_FOUND)
 
 ##### Find HDF5 with SWMR ###################
 message("\nSearching for HDF5 with SWMR")
+
+IF (HDF5_ROOT)
+  message("HDF5_ROOT set: " ${HDF5_ROOT})
+  set( ENV{HDF5_ROOT} ${HDF5_ROOT} )
+ENDIF(HDF5_ROOT)
+
 find_package(HDF5 
              REQUIRED)
 
@@ -45,6 +51,7 @@ IF (NOT HDF5_FOUND)
 ELSE (NOT HDF5_FOUND)
   message("HDF5 lib dir:        " ${HDF5_LIBRARY_DIRS})
   message("HDF5 include files:  " ${HDF5_INCLUDE_DIRS})
+  #message("HDF5 libs:           " ${HDF5_LIBRARIES})
 ENDIF (NOT HDF5_FOUND)
 ##### End of HDF5 with SWMR search ##########
 
