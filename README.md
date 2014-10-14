@@ -20,11 +20,32 @@ The build system is using cmake. The following libraries are required:
 * [Log4CXX](http://logging.apache.org/log4cxx/): Configurable logger (version >= 0.10.0)
 
 If the dependencies are installed in non-standard locations, use the following
-variables to inform cmake where to find them:
+cmake-variables to inform cmake where to find them:
 
 * HDF5_ROOT
 * BOOST_ROOT
 * LOG4CXX_ROOT_DIR
+
+The standard cmake variables can be used to configure boost and HDF5. For example
+to do a static build with HDF5, set the variable HDF5_USE_STATIC_LIBRARIES=ON.
+
+To install the swmr-testapp into a custom location, use the standard cmake
+variable: CMAKE_INSTALL_PREFIX 
+
+Configure and build like this:
+
+    tar -zxf swmr-testapp.tar.gz
+    cd swmr-testapp
+    mkdir build
+    cd build
+    cmake -DHDF5_ROOT=/path/to/hdf5/swmr/installation \
+          -DHDF5_USE_STATIC_LIBRARIES=ON \
+          -DBOOST_ROOT=/path/to/boost/installation \
+          -DCMAKE_INSTALL_PREFIX=/path/to/install/destination
+          ..
+    make VERBOSE=1
+    make install
+
 
 Running
 =======
