@@ -3,7 +3,9 @@ compiler: gcc
 install:
   - sudo apt-get update -qq
   - sudo apt-get install -qq liblog4cxx10-dev zlib1g-dev libboost-program-options-dev
-  - cmake -DHDF5_USE_STATIC_LIBRARIES=ON -DHDF5_ROOT=hdf5swmr/ .
+  - pwd
+  - ls *
+  - cmake -DHDF5_USE_STATIC_LIBRARIES=ON -DHDF5_ROOT=$(pwd)/hdf5swmr/ .
   - make VERBOSE=1 && make install
 script: 
   - which swmr
