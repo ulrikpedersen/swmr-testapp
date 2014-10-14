@@ -41,23 +41,34 @@ message("\nSearching for HDF5 with SWMR")
 IF (HDF5_ROOT)
   message("HDF5_ROOT set: " ${HDF5_ROOT})
   set( ENV{HDF5_ROOT} ${HDF5_ROOT} )
+  find_path( HDF5_INCLUDE_DIRS
+             NAMES hdf5.h
+             PATHS ${HDF5_ROOT}/include
+             NO_DEFAULT_PATH )
+  find_library( HDF5_LIBRARIES
+                NAMES hdf5
+                PATHS ${HDF5_ROOT}/lib
+                NO_DEFAULT_PATH )
+ELSE(HDF5_ROOT)
+    find_package(HDF5
+                 REQUIRED)
+
+    IF (NOT HDF5_FOUND)
+      message(FATAL_ERROR "Unable to find HDF5 installation")
+    ELSE (NOT HDF5_FOUND)
+      message("HDF5 lib dir:        " ${HDF5_LIBRARY_DIRS})
+    ENDIF (NOT HDF5_FOUND)
 ENDIF(HDF5_ROOT)
 
-find_package(HDF5 
-             REQUIRED)
+message("HDF5 include files:  " ${HDF5_INCLUDE_DIRS})
+message("HDF5 libs:           " ${HDF5_LIBRARIES})
 
-IF (NOT HDF5_FOUND)
-  message(FATAL_ERROR "Unable to find HDF5 installation")
-ELSE (NOT HDF5_FOUND)
-  message("HDF5 lib dir:        " ${HDF5_LIBRARY_DIRS})
-  message("HDF5 include files:  " ${HDF5_INCLUDE_DIRS})
-  #message("HDF5 libs:           " ${HDF5_LIBRARIES})
-ENDIF (NOT HDF5_FOUND)
 ##### End of HDF5 with SWMR search ##########
 
 
 ##### Find other dependencies ############
 find_package(Log4CXX 0.10.0 REQUIRED)
+find_package(ZLIB REQUIRED)
 
 # librt is really only required if glibc =< 2.16
 FIND_LIBRARY(REALTIME_LIBRARY
@@ -77,7 +88,7 @@ file(GLOB swmr_SOURCES *.cpp)
 # Create an executable file called helloworld from sources:
 add_executable(swmr ${swmr_SOURCES})
 
-target_link_libraries(swmr ${Boost_LIBRARIES} ${LOG4CXX_LIBRARIES} ${HDF5_LIBRARIES} ${REALTIME_LIBRARY})
+target_link_libraries(swmr ${Boost_LIBRARIES} ${LOG4CXX_LIBRARIES} ${HDF5_LIBRARIES} ${REALTIME_LIBRARY} ${ZLIB_LIBRARIES})
 
 INSTALL(TARGETS swmr
   RUNTIME DESTINATION bin
