@@ -10,6 +10,7 @@ using namespace log4cxx::xml;
 
 #include "swmr-testdata.h"
 #include "timestamp.h"
+#include "progressbar.h"
 #include "swmr-reader.h"
 
 using namespace std;
@@ -178,18 +179,23 @@ bool SWMRReader::check_dataset()
     return result;
 }
 
-void SWMRReader::monitor_dataset(double timeout, double polltime)
+void SWMRReader::monitor_dataset(double timeout, double polltime, int expected)
 {
     bool carryon = true;
     bool check_result;
     LOG4CXX_DEBUG(m_log, "Starting monitoring");
     TimeStamp ts;
 
+    bool show_pbar = not m_log->isDebugEnabled();
     while (carryon) {
         if (this->latest_frame_number() > m_latest_framenumber) {
             this->read_latest_frame();
             check_result = this->check_dataset();
             m_checks.push_back(check_result);
+            if (expected > 0) {
+                if (show_pbar) progressbar(this->m_latest_framenumber, expected);
+                if (m_latest_framenumber >= expected) carryon = false;
+            }
             ts.reset();
         } else {
             double secs = ts.seconds_until_now();

@@ -12,6 +12,7 @@ using namespace log4cxx::xml;
 #include "hdf5.h"
 #include "swmr-testdata.h"
 #include "timestamp.h"
+#include "progressbar.h"
 #include "swmr-writer.h"
 
 using namespace std;
@@ -121,6 +122,8 @@ void SWMRWriter::write_test_data(unsigned int niter,
     TimeStamp ts;
     ts.reset();
     LOG4CXX_DEBUG(log, "Starting write loop. Iterations: " << niter);
+    bool show_pbar = not log->isDebugEnabled();
+    if (show_pbar) progressbar(0, niter);
     for (int i = 0; i < niter; i++) {
         /* Extend the dataset  */
         LOG4CXX_TRACE(log, "Extending. Size: " << size[2]
@@ -147,6 +150,8 @@ void SWMRWriter::write_test_data(unsigned int niter,
 
         LOG4CXX_TRACE(log, "Flushing");
         assert(H5Dflush(dataset) >= 0);
+
+        if (show_pbar) progressbar(i+1, niter);
 
         if (period > 0.0) {
             double sleeptime = period - ts.seconds_until_now();

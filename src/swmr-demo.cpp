@@ -253,7 +253,8 @@ int SwmrDemoCli::run_read()
     LOG4CXX_INFO(m_log, "Starting monitor");
     double polltime = m_options["polltime"].as<double>();
     double timeout = m_options["timeout"].as<double>();
-    srd.monitor_dataset(timeout, polltime);
+    int expected_frames = m_options["nframes"].as<int>();
+    srd.monitor_dataset(timeout, polltime, expected_frames);
     int fail_count = srd.report();
     return fail_count;
 }
