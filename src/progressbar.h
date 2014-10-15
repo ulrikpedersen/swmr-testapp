@@ -4,21 +4,24 @@
 #include <iostream>
 #include <iomanip>
 #include <sys/ioctl.h>
+#include <cstdio>
 
-static inline void progressbar(unsigned int x, unsigned int n)
+static inline void progressbar(unsigned int progress, unsigned int nitems)
 {
     struct winsize w;
     ioctl(0, TIOCGWINSZ, &w);
+    unsigned short int bar_width = w.ws_col - 10;
 
-    if ( (x != n) && (x % (n/100+1) != 0) ) return;
+    if ( (progress != nitems) && (progress % (nitems/100+1) != 0) ) return;
  
-    float ratio  =  x/(float)n;
-    int   c      =  ratio * w.ws_col;
+    float ratio  =  progress/(float)nitems;
+    int   c      =  ratio * bar_width;
  
     std::cout << std::setw(3) << (int)(ratio*100) << "% [";
     for (int x=0; x<c; x++) std::cout << "=";
-    for (int x=c; x<w.ws_col; x++) std::cout << " ";
-    std::cout << "]\n\033[F\033[J" << std::flush;
+    for (int x=c; x<bar_width; x++) std::cout << " ";
+    std::cout << "]\r" << std::flush;
+    if (progress >= nitems) std::cout << std::endl;
 }
 
 #endif /* PROGRESSBAR_H_ */
