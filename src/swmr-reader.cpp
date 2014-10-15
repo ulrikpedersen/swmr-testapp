@@ -186,13 +186,14 @@ void SWMRReader::monitor_dataset(double timeout, double polltime, int expected)
     LOG4CXX_DEBUG(m_log, "Starting monitoring");
     TimeStamp ts;
 
+    bool show_pbar = not m_log->isDebugEnabled();
     while (carryon) {
         if (this->latest_frame_number() > m_latest_framenumber) {
             this->read_latest_frame();
             check_result = this->check_dataset();
             m_checks.push_back(check_result);
             if (expected > 0) {
-                progressbar(this->m_latest_framenumber, expected);
+                if (show_pbar) progressbar(this->m_latest_framenumber, expected);
                 if (m_latest_framenumber >= expected) carryon = false;
             }
             ts.reset();
