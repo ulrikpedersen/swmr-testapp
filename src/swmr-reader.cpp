@@ -205,7 +205,7 @@ void SWMRReader::monitor_dataset(double timeout, double polltime)
 }
 
 
-int SWMRReader::report(std::ostream& out)
+int SWMRReader::report()
 {
     ostringstream oss;
     int fail_count = count(m_checks.begin(), m_checks.end(), false);
@@ -217,8 +217,8 @@ int SWMRReader::report(std::ostream& out)
     } else {
         oss << " Result: Failed checks: " << fail_count << endl;
     }
-    out << oss.str();
-    LOG4CXX_INFO(m_log, oss.str());
+    if (not m_log->isDebugEnabled()) cout << oss.str();
+    LOG4CXX_DEBUG(m_log, oss.str());
     return fail_count;
 }
 

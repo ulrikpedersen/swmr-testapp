@@ -116,6 +116,7 @@ void SWMRWriter::write_test_data(unsigned int niter,
     assert(H5Fstart_swmr_write(this->fid) >= 0);
     LOG4CXX_INFO(log, "##### SWMR mode ######");
     LOG4CXX_INFO(log, "Clients can start reading");
+    if (!log->isInfoEnabled()) cout << "##### SWMR mode ######" << endl;
 
     TimeStamp ts;
     ts.reset();

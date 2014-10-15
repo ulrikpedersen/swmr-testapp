@@ -25,7 +25,7 @@ public:
     void read_latest_frame();
     bool check_dataset();
     void monitor_dataset(double timeout = 2.0, double polltime=0.2);
-    int report(std::ostream& out = std::cout);
+    int report();
 
 private:
     void print_open_objects();

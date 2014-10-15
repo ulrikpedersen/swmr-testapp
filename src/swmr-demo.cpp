@@ -235,13 +235,13 @@ int SwmrDemoCli::run_read()
     string datafile(m_options["datafile"].as<string>());
     string dataset(m_options["dataset"].as<string>());
 
-    LOG4CXX_INFO(m_log, "Creating a SWMR Reader object");
+    LOG4CXX_DEBUG(m_log, "Creating a SWMR Reader object");
     SWMRReader srd;
 
     LOG4CXX_INFO(m_log, "Opening file (" << datafile << ")");
     srd.open_file(datafile, dataset);
 
-    LOG4CXX_INFO(m_log, "Getting test data");
+    LOG4CXX_DEBUG(m_log, "Getting test data");
     if (m_options.count("testdatafile")) {
         string testdatafile(m_options["testdatafile"].as<string>());
         string testdataset(m_options["testdataset"].as<string>());
@@ -265,10 +265,10 @@ int SwmrDemoCli::run_write()
     int nchunked_frames = m_options["chunk"].as<int>();
     double period = m_options["period"].as<double>();
 
-    LOG4CXX_INFO(m_log, "Creating a SWMR Writer object (" << datafile << ")");
+    LOG4CXX_DEBUG(m_log, "Creating a SWMR Writer object (" << datafile << ")");
     SWMRWriter swr = SWMRWriter(datafile);
 
-    LOG4CXX_INFO(m_log, "Creating file");
+    LOG4CXX_DEBUG(m_log, "Creating file: "<< datafile);
     swr.create_file();
 
     LOG4CXX_INFO(m_log, "Getting test data");
@@ -293,7 +293,7 @@ int main(int ac, char* av[])
     // This can be overridden by the user on the CLI with the --logconfig option
     ConsoleAppender * consoleAppender = new ConsoleAppender(LayoutPtr(new SimpleLayout()));
     BasicConfigurator::configure(AppenderPtr(consoleAppender));
-    Logger::getRootLogger()->setLevel(Level::getInfo());
+    Logger::getRootLogger()->setLevel(Level::getWarn());
 
     SwmrDemoCli cli;
     cli.main_args(ac, av);
