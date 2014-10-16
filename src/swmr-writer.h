@@ -14,7 +14,7 @@ public:
     void create_file();
     void get_test_data();
     void get_test_data(const std::string& fname, const std::string& dsetname);
-    void write_test_data(unsigned int niter, unsigned int nframes_cache, double period=0.2);
+    void write_test_data(unsigned int niter, unsigned int nframes_cache);
 
 private:
     LoggerPtr log;

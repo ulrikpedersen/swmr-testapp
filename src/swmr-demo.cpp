@@ -145,9 +145,7 @@ void SwmrDemoCli::parse_options()
             ("niter,n", po::value<int>()->default_value(2),
                     "Number of write iterations")
             ("chunk,c", po::value<int>()->default_value(1),
-                    "Number of chunked frames")
-            ("period,p", po::value<double>()->default_value(1.0),
-                    "Write loop period [sec]");
+                    "Number of chunked frames");
         break;
     }
 
@@ -264,7 +262,6 @@ int SwmrDemoCli::run_write()
     string datafile(m_options["datafile"].as<string>());
     int niter = m_options["niter"].as<int>();
     int nchunked_frames = m_options["chunk"].as<int>();
-    double period = m_options["period"].as<double>();
 
     LOG4CXX_DEBUG(m_log, "Creating a SWMR Writer object (" << datafile << ")");
     SWMRWriter swr = SWMRWriter(datafile);
@@ -282,7 +279,7 @@ int SwmrDemoCli::run_write()
     }
 
     LOG4CXX_INFO(m_log, "Writing 40 iterations");
-    swr.write_test_data(niter, nchunked_frames, period);
+    swr.write_test_data(niter, nchunked_frames);
 
     return 0;
 }

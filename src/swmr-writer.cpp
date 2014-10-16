@@ -74,8 +74,7 @@ void SWMRWriter::get_test_data(const string& fname, const string& dsetname)
 }
 
 void SWMRWriter::write_test_data(unsigned int niter,
-                                 unsigned int nframes_cache,
-                                 double period)
+                                 unsigned int nframes_cache)
 {
     hid_t dataspace, dataset;
     hid_t filespace, memspace;
