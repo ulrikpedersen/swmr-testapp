@@ -171,13 +171,6 @@ void SWMRWriter::write_test_data(unsigned int niter,
 
         if (show_pbar) progressbar(i+1, niter);
 
-        if (period > 0.0) {
-            double sleeptime = period - ts.seconds_until_now();
-            if (sleeptime > 0.0) {
-                LOG4CXX_TRACE(log, "Sleeping " << sleeptime << "sec (period: "
-                                   << period << "sec" );
-                usleep((unsigned int) (sleeptime * 1000000));
-            }
             ts.reset();
         }
     }
