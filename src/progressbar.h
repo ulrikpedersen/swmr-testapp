@@ -6,11 +6,12 @@
 #include <sys/ioctl.h>
 #include <cstdio>
 
-static inline void progressbar(unsigned int progress, unsigned int nitems)
+static inline void progressbar(unsigned int progress, unsigned int nitems,
+                               double rate = 0.)
 {
     struct winsize w;
     ioctl(0, TIOCGWINSZ, &w);
-    unsigned short int bar_width = w.ws_col - 10;
+    unsigned short int bar_width = w.ws_col - 22;
 
     if ( (progress != nitems) && (progress % (nitems/100+1) != 0) ) return;
  
@@ -20,7 +21,7 @@ static inline void progressbar(unsigned int progress, unsigned int nitems)
     std::cout << std::setw(3) << (int)(ratio*100) << "% [";
     for (int x=0; x<c; x++) std::cout << "=";
     for (int x=c; x<bar_width; x++) std::cout << " ";
-    std::cout << "]\r" << std::flush;
+    std::cout << "] ["<< std::fixed << std::setw(6)  << std::setprecision(1) << rate <<"MB/s]\r" << std::flush;
     if (progress >= nitems) std::cout << std::endl;
 }
 
