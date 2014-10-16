@@ -2,12 +2,13 @@
 #include <string>
 #include <numeric>
 #include <algorithm>
-
 #include <cstring>
 #include <assert.h>
 
-#include <hdf5.h>
+#include <log4cxx/logger.h>
+using namespace log4cxx;
 
+#include <hdf5.h>
 #include "frame.h"
 
 using namespace std;
