@@ -103,6 +103,12 @@ void SWMRWriter::write_test_data(unsigned int niter,
     size[1] = this->img.dimensions()[0];
     size[2] = this->img.dimensions()[1];
 
+    double full_cache_size = sizeof(uint32_t) *
+                             this->img.dimensions()[0] *
+                             this->img.dimensions()[1] *
+                             nframes_cache;
+    full_cache_size = full_cache_size / (1024. * 1024.); // in MegaBytes
+
     /* Create the dataspace with the given dimensions - and max dimensions */
     dataspace = H5Screate_simple(3, img_dims, max_dims);
     assert(dataspace >= 0);
@@ -135,10 +141,12 @@ void SWMRWriter::write_test_data(unsigned int niter,
     if (!log->isInfoEnabled()) cout << "##### SWMR mode ######" << endl;
 
     TimeStamp ts;
-    ts.reset();
     LOG4CXX_DEBUG(log, "Starting write loop. Iterations: " << niter);
     bool show_pbar = not log->isDebugEnabled();
     if (show_pbar) progressbar(0, niter);
+    double writetime = 0.;
+    double writerate = 0.;
+    ts.reset();
     for (int i = 0; i < niter; i++) {
         /* Extend the dataset  */
         LOG4CXX_TRACE(log, "Extending. Size: " << size[2]
@@ -167,12 +175,14 @@ void SWMRWriter::write_test_data(unsigned int niter,
         {
             LOG4CXX_TRACE(log, "Flushing");
             assert(H5Dflush(dataset) >= 0);
-        }
-
-        if (show_pbar) progressbar(i+1, niter);
-
+            writetime = ts.seconds_until_now();
+            writerate = full_cache_size / writetime;
+            LOG4CXX_DEBUG(log, "Writetime: " << writetime << " ["
+                          << writerate << "MB/s]");
             ts.reset();
         }
+
+        if (show_pbar) progressbar(i+1, niter, writerate);
     }
 
     LOG4CXX_DEBUG(log, "Closing intermediate open HDF objects");
