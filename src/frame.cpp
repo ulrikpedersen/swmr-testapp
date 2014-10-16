@@ -29,6 +29,7 @@ Frame::Frame(const std::vector<hsize_t>& dims, uint32_t* pdata)
 : m_pdata(NULL), m_log(Logger::getLogger("Frame"))
 {
     m_dims = dims;   // copy the input dimensions
+    m_chunks = dims; // Default chunk configuration is the full frame
     m_pdata = pdata; // copy (shallow) the data pointer
 }
 
@@ -36,6 +37,7 @@ Frame::Frame(const std::vector<hsize_t>& dims, const uint32_t* pdata)
 : m_pdata(NULL), m_log(Logger::getLogger("Frame"))
 {
     m_dims = dims;   // copy the input dimensions
+    m_chunks = dims; // Default chunk configuration is the full frame
 
     unsigned long long nitems = Frame::num_items(dims);
     m_pdata = new uint32_t [nitems];
@@ -71,6 +73,12 @@ Frame::Frame(const std::string& fname, const std::string& dsetname)
     LOG4CXX_DEBUG(m_log, "Test data ("<< fname <<") Dims: " << dims[0]
                          << ", " << dims[1] << ", " << dims[2]);
 
+    /* read out the chunk configuration of the test data */
+    hid_t dcpl = H5Dget_create_plist(dset);
+    m_chunks.clear(); m_chunks.resize(m_dims.size());
+    hsize_t *chunks = (hsize_t*)&(m_chunks.front());
+    assert( H5Pget_chunk(dcpl, m_chunks.size(), chunks) >= 0);
+
     hsize_t offset[3] = { m_dims[0] - 1, 0, 0 };
     assert(offset[0] >= 0);
     m_dims[0] = 1; // We only want to read out one slice
@@ -81,9 +89,14 @@ Frame::Frame(const std::string& fname, const std::string& dsetname)
     assert(memspace >= 0);
     herr_t status = H5Sselect_hyperslab(memspace, H5S_SELECT_SET, offset+1,
                                         NULL, dims+1, NULL);
+
+    // We have a 3D dataset - but we only want to provide a 2D image
+    // so we chop off one dimension...
     assert(status >= 0);
     m_dims.erase(m_dims.begin());
     assert(m_dims.size() == 2);
+    m_chunks.erase(m_chunks.begin());
+    assert(m_chunks.size() == m_dims.size());
 
     if (m_pdata != NULL) {
         delete [] m_pdata;
@@ -110,6 +123,10 @@ Frame::~Frame()
 const std::vector<hsize_t>& Frame::dimensions()
 {
     return m_dims;
+}
+const std::vector<hsize_t>& Frame::chunks()
+{
+    return m_chunks;
 }
 
 uint32_t* Frame::create_buffer()
@@ -148,6 +165,7 @@ bool Frame::operator !=(const Frame& cmp)
 void Frame::copy(const Frame& src)
 {
     m_dims = src.m_dims;
+    m_chunks = src.m_chunks;
     m_pdata = src.m_pdata;
 }
 
