@@ -1,5 +1,6 @@
 #include <iostream>
 #include <string>
+#include <cmath>
 #include <assert.h>
 
 #include <cstdlib>
@@ -35,6 +36,11 @@ void SWMRWriter::create_file()
     /* Create file access property list */
     fapl = H5Pcreate(H5P_FILE_ACCESS);
     assert(fapl >= 0);
+
+    assert(H5Pset_fclose_degree(fapl, H5F_CLOSE_STRONG) >= 0);
+
+    /* Set chunk boundary alignment */
+    assert( H5Pset_alignment( fapl, 65536, 4*1024*1024 ) >= 0);
 
     /* Set to use the latest library format */
     assert(H5Pset_libver_bounds(fapl, H5F_LIBVER_LATEST, H5F_LIBVER_LATEST) >= 0);
@@ -108,10 +114,18 @@ void SWMRWriter::write_test_data(unsigned int niter,
     status = H5Pset_chunk(prop, 3, chunk_dims);
     assert(status >= 0);
 
+    /* dataset access property list */
+    hid_t dapl = H5Pcreate(H5P_DATASET_ACCESS);
+    size_t nbytes = img_dims[1] * img_dims[2] * sizeof(uint32_t) * chunk_dims[0];
+    size_t nslots = static_cast<size_t>(ceil((double)max_dims[1] / chunk_dims[1]) * niter);
+    nslots *= 13;
+    LOG4CXX_DEBUG(log, "Chunk cache nslots=" << nslots << " nbytes=" << nbytes);
+    assert( H5Pset_chunk_cache( dapl, nslots, nbytes, 1.0) >= 0);
+
     /* Create dataset  */
     LOG4CXX_DEBUG(log, "Creating dataset");
     dataset = H5Dcreate2(this->fid, "data", H5T_NATIVE_INT, dataspace,
-    H5P_DEFAULT, prop, H5P_DEFAULT);
+    H5P_DEFAULT, prop, dapl);
 
     /* Enable SWMR writing mode */
     assert(H5Fstart_swmr_write(this->fid) >= 0);
@@ -148,8 +162,11 @@ void SWMRWriter::write_test_data(unsigned int niter,
         offset[0]++;
         size[0]++;
 
-        LOG4CXX_TRACE(log, "Flushing");
-        assert(H5Dflush(dataset) >= 0);
+        if ((i+1) % nframes_cache == 0)
+        {
+            LOG4CXX_TRACE(log, "Flushing");
+            assert(H5Dflush(dataset) >= 0);
+        }
 
         if (show_pbar) progressbar(i+1, niter);
 
@@ -167,6 +184,7 @@ void SWMRWriter::write_test_data(unsigned int niter,
     LOG4CXX_DEBUG(log, "Closing intermediate open HDF objects");
     H5Dclose(dataset);
     H5Pclose(prop);
+    H5Pclose(dapl);
     H5Sclose(dataspace);
     H5Sclose(filespace);
 }
