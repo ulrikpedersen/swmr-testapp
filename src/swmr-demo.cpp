@@ -281,6 +281,7 @@ int SwmrDemoCli::run_write()
     LOG4CXX_INFO(m_log, "Writing 40 iterations");
     swr.write_test_data(niter, nchunked_frames);
 
+    swr.report();
     return 0;
 }
 

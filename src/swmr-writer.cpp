@@ -1,6 +1,8 @@
 #include <iostream>
 #include <string>
 #include <cmath>
+#include <numeric>
+#include <algorithm>
 #include <assert.h>
 
 #include <cstdlib>
@@ -9,8 +11,8 @@
 using namespace log4cxx;
 
 #include "hdf5.h"
-#include "swmr-testdata.h"
 #include "timestamp.h"
+#include "swmr-testdata.h"
 #include "progressbar.h"
 #include "swmr-writer.h"
 
@@ -24,6 +26,8 @@ SWMRWriter::SWMRWriter(const string& fname)
     LOG4CXX_TRACE(log, "SWMRWriter constructor. Filename: " << fname);
     this->filename = fname;
     this->fid = -1;
+    dt_start = 0.0;
+    nframes = 0;
 }
 
 void SWMRWriter::create_file()
@@ -37,7 +41,7 @@ void SWMRWriter::create_file()
 
     assert(H5Pset_fclose_degree(fapl, H5F_CLOSE_STRONG) >= 0);
 
-    /* Set chunk boundary alignment */
+    /* Set chunk boundary alignment to 4MB */
     assert( H5Pset_alignment( fapl, 65536, 4*1024*1024 ) >= 0);
 
     /* Set to use the latest library format */
@@ -145,6 +149,8 @@ void SWMRWriter::write_test_data(unsigned int niter,
     if (show_pbar) progressbar(0, niter);
     double writetime = 0.;
     double writerate = 0.;
+    TimeStamp globaltime;
+    globaltime.reset();
     ts.reset();
     for (int i = 0; i < niter; i++) {
         /* Extend the dataset  */
@@ -175,14 +181,19 @@ void SWMRWriter::write_test_data(unsigned int niter,
             LOG4CXX_TRACE(log, "Flushing");
             assert(H5Dflush(dataset) >= 0);
             writetime = ts.seconds_until_now();
+            write_times.push_back(writetime);
             writerate = full_cache_size / writetime;
             LOG4CXX_DEBUG(log, "Writetime: " << writetime << " ["
                           << writerate << "MB/s]");
             ts.reset();
+            dt_start = globaltime.seconds_until_now();
         }
 
         if (show_pbar) progressbar(i+1, niter, writerate);
     }
+
+    dt_start = globaltime.seconds_until_now();
+    nframes = niter;
 
     LOG4CXX_DEBUG(log, "Closing intermediate open HDF objects");
     H5Dclose(dataset);
@@ -190,6 +201,32 @@ void SWMRWriter::write_test_data(unsigned int niter,
     H5Pclose(dapl);
     H5Sclose(dataspace);
     H5Sclose(filespace);
+}
+
+void SWMRWriter::report()
+{
+    ostringstream oss;
+    double sum = accumulate(write_times.begin(), write_times.end(), 0.0);
+    double mean = sum / write_times.size();
+
+    double sq_sum = inner_product(write_times.begin(), write_times.end(), write_times.begin(), 0.0);
+    double stdev = sqrt(sq_sum / write_times.size() - mean * mean);
+    double imgsize = this->img.dimensions()[0] * this->img.dimensions()[1] * sizeof(uint32_t);
+    imgsize = imgsize / (1024. * 1024); // in megabytes
+    double dsetsize = imgsize * nframes;
+
+    oss << endl << "======= SWMR writer report ========" << endl << endl
+        << " Number of writes: " << write_times.size() << endl
+        << fixed << setprecision(1)
+        << "    Overall time:    " << dt_start << "s\n"
+        << "            rate:    " << dsetsize/dt_start << "MB/s\n"
+        << fixed << setprecision(3)
+        << " Mean write time:    " << mean << "s (stddev: "<< stdev << "s)\n"
+        << "             min:    " << *min_element(write_times.begin(), write_times.end()) << "s\n"
+        << "             max:    " << *max_element(write_times.begin(), write_times.end()) << "s\n"
+        << endl;
+    if (not log->isDebugEnabled()) cout << oss.str();
+    LOG4CXX_DEBUG(log, oss.str());
 }
 
 SWMRWriter::~SWMRWriter()

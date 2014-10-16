@@ -2,6 +2,7 @@
 #define SWMR_WRITER_H_
 
 #include <string>
+#include <vector>
 #include <log4cxx/logger.h>
 #include <hdf5.h>
 
@@ -15,12 +16,16 @@ public:
     void get_test_data();
     void get_test_data(const std::string& fname, const std::string& dsetname);
     void write_test_data(unsigned int niter, unsigned int nframes_cache);
+    void report();
 
 private:
     LoggerPtr log;
     hid_t fid;
     std::string filename;
     Frame img;
+    std::vector<double> write_times;
+    double dt_start;
+    unsigned int nframes;
 };
 
 
