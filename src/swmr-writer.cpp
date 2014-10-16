@@ -89,8 +89,8 @@ void SWMRWriter::write_test_data(unsigned int niter,
 
     assert(this->img.dimensions().size() == 2);
     chunk_dims[0] = nframes_cache;
-    chunk_dims[1] = this->img.dimensions()[0];
-    chunk_dims[2] = this->img.dimensions()[1];
+    chunk_dims[1] = this->img.chunks()[0];
+    chunk_dims[2] = this->img.chunks()[1];
 
     max_dims[0] = H5S_UNLIMITED;
     max_dims[1] = this->img.dimensions()[0];
@@ -108,6 +108,9 @@ void SWMRWriter::write_test_data(unsigned int niter,
     assert(dataspace >= 0);
 
     /* Enable chunking  */
+    LOG4CXX_DEBUG(log, "Chunking=" << chunk_dims[0] << ","
+                       << chunk_dims[1] << ","
+                       << chunk_dims[2]);
     prop = H5Pcreate(H5P_DATASET_CREATE);
     status = H5Pset_chunk(prop, 3, chunk_dims);
     assert(status >= 0);
