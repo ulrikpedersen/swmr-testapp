@@ -62,8 +62,37 @@ Running
 The "swmr" application takes a subcommand, either: "read" or "write". 
 
 Both reader and writer operate by loading in a reference dataset (a single 2D
-image) from a file is one is supplied (--testdatafile). Writer and reader must
-use the same test data and DATAFILE to succeed.
+image in a 3D dataset) from a file is one is supplied (--testdatafile). 
+Writer and reader must use the same test data and DATAFILE to succeed. 
+The 2D image chunking (the last 2 dims) configuration of the test dataset is u
+sed in the writer when creating the new dataset in the output DATAFILE.
+
+An example --testdatafile could look something like this:
+
+    h5dump -Hp excimg.h5 
+    HDF5 "excimg.h5" {
+    GROUP "/" {
+       DATASET "data" {
+          DATATYPE  H5T_STD_U16LE
+          DATASPACE  SIMPLE { ( 1, 1024, 2048 ) / ( 1, 1024, 2048 ) }
+          STORAGE_LAYOUT {
+             CHUNKED ( 1, 256, 2048 )
+             SIZE 4194304
+          }
+          FILTERS {
+             NONE
+          }
+          FILLVALUE {
+             FILL_TIME H5D_FILL_TIME_ALLOC
+             VALUE  0
+          }
+          ALLOCATION_TIME {
+             H5D_ALLOC_TIME_INCR
+          }
+       }
+    }
+    }
+
 
 The writer will repeatedly write the reference dataset into a growing 3D dataset
 in the output DATAFILE. Multiple readers can be started after the writer has
@@ -77,8 +106,6 @@ and a summary of the result of the comparisons.
 Each subcommand provide it's own online help. For the reader:
 
     swmr read -h
-    Available subcommands: [help|read|write] 
-    
     Usage:
       swmr read [options] [DATAFILE]
     
@@ -102,8 +129,6 @@ Each subcommand provide it's own online help. For the reader:
 The writer:
 
     swmr write -h
-    Available subcommands: [help|read|write] 
-    
     Usage:
       swmr write [options] [DATAFILE]
     
@@ -119,6 +144,5 @@ The writer:
       -l [ --logconfig ] arg           Log4CXX XML configuration file
     
     Command options:
-      -n [ --niter ] arg (=2)  Number of write iterations
-      -c [ --chunk ] arg (=1)  Number of chunked frames
-      -p [ --period ] arg (=1) Write loop period [sec]
+      -n [ --niter ] arg (=2) Number of write iterations
+      -c [ --chunk ] arg (=1) Number of chunked frames
