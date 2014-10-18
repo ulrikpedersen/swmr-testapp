@@ -42,14 +42,19 @@ IF (HDF5_ROOT)
   message("HDF5_ROOT set: " ${HDF5_ROOT})
   set( ENV{HDF5_ROOT} ${HDF5_ROOT} )
   find_path( HDF5_INCLUDE_DIRS
-             NAMES hdf5.h
+             NAMES hdf5.h hdf5_hl.h
              PATHS ${HDF5_ROOT}/include
              NO_DEFAULT_PATH )
   find_library( HDF5_LIBRARIES
-                NAMES hdf5
+                NAMES hdf5 hdf5_hl
+                PATHS ${HDF5_ROOT}/lib
+                NO_DEFAULT_PATH )
+  find_library( HDF5HL_LIBRARIES
+                NAMES hdf5_hl
                 PATHS ${HDF5_ROOT}/lib
                 NO_DEFAULT_PATH )
 ELSE(HDF5_ROOT)
+    set(HDF5HL_LIBRARIES "")
     find_package(HDF5
                  REQUIRED)
 
@@ -61,7 +66,7 @@ ELSE(HDF5_ROOT)
 ENDIF(HDF5_ROOT)
 
 message("HDF5 include files:  " ${HDF5_INCLUDE_DIRS})
-message("HDF5 libs:           " ${HDF5_LIBRARIES})
+message("HDF5 libs:           " ${HDF5_LIBRARIES} ${HDF5HL_LIBRARIES})
 
 ##### End of HDF5 with SWMR search ##########
 
@@ -88,7 +93,7 @@ file(GLOB swmr_SOURCES *.cpp)
 # Create an executable file called helloworld from sources:
 add_executable(swmr ${swmr_SOURCES})
 
-target_link_libraries(swmr ${Boost_LIBRARIES} ${LOG4CXX_LIBRARIES} ${HDF5_LIBRARIES} ${REALTIME_LIBRARY} ${ZLIB_LIBRARIES})
+target_link_libraries(swmr ${Boost_LIBRARIES} ${LOG4CXX_LIBRARIES} ${HDF5_LIBRARIES} ${HDF5HL_LIBRARIES} ${REALTIME_LIBRARY} ${ZLIB_LIBRARIES})
 
 INSTALL(TARGETS swmr
   RUNTIME DESTINATION bin
