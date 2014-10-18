@@ -135,7 +135,7 @@ void SWMRWriter::write_test_data(unsigned int niter,
 
     /* Create dataset  */
     LOG4CXX_DEBUG(log, "Creating dataset");
-    dataset = H5Dcreate2(this->fid, "data", H5T_NATIVE_INT, dataspace,
+    dataset = H5Dcreate2(this->fid, "data", H5T_NATIVE_UINT32, dataspace,
     H5P_DEFAULT, prop, dapl);
 
     /* Enable SWMR writing mode */
