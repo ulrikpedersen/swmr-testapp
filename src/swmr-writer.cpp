@@ -79,7 +79,8 @@ void SWMRWriter::get_test_data(const string& fname, const string& dsetname)
 }
 
 void SWMRWriter::write_test_data(unsigned int niter,
-                                 unsigned int nframes_cache)
+                                 unsigned int nframes_cache,
+                                 bool direct)
 {
     hid_t dataspace=0, dataset=0;
     hid_t filespace=0, memspace=0;
@@ -162,7 +163,7 @@ void SWMRWriter::write_test_data(unsigned int niter,
         status = H5Dset_extent(dataset, size);
         assert(status >= 0);
 
-        if (true) {
+        if (direct) {
         	uint32_t filter_mask = 0x0;
         	status = H5DOwrite_chunk(dataset, H5P_DEFAULT,
         							 filter_mask, offset,
