@@ -199,4 +199,17 @@ unsigned long long Frame::num_items(const std::vector<hsize_t>& dims) const
     return nitems;
 }
 
+size_t Frame::num_bytes_img() {
+	size_t nbytes = 0;
+	nbytes = this->num_items() * sizeof(uint32_t);
+	return nbytes;
+}
+
+size_t Frame::num_bytes_chunk() {
+	size_t nbytes = 0;
+	nbytes = this->num_items(m_chunks) * sizeof(uint32_t);
+	return nbytes;
+}
+
+
 
