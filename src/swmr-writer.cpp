@@ -81,10 +81,10 @@ void SWMRWriter::get_test_data(const string& fname, const string& dsetname)
 void SWMRWriter::write_test_data(unsigned int niter,
                                  unsigned int nframes_cache)
 {
-    hid_t dataspace, dataset;
-    hid_t filespace, memspace;
-    hid_t prop;
-    herr_t status;
+    hid_t dataspace=0, dataset=0;
+    hid_t filespace=0, memspace=0;
+    hid_t prop=0;
+    herr_t status=0;
     hsize_t chunk_dims[3];
     hsize_t max_dims[3];
     hsize_t img_dims[3];
@@ -171,6 +171,7 @@ void SWMRWriter::write_test_data(unsigned int niter,
         } else {
             /* Select a hyperslab */
             filespace = H5Dget_space(dataset);
+            assert(filespace >= 0);
             status = H5Sselect_hyperslab(filespace, H5S_SELECT_SET, offset, NULL,
                                          img_dims, NULL);
             assert(status >= 0);
@@ -207,11 +208,10 @@ void SWMRWriter::write_test_data(unsigned int niter,
     nframes = niter;
 
     LOG4CXX_DEBUG(log, "Closing intermediate open HDF objects");
-    H5Dclose(dataset);
-    H5Pclose(prop);
-    H5Pclose(dapl);
-    H5Sclose(dataspace);
-    H5Sclose(filespace);
+    assert( H5Dclose(dataset) >= 0);
+    assert( H5Pclose(prop) >= 0);
+    assert( H5Pclose(dapl) >= 0);
+    assert( H5Sclose(dataspace) >= 0);
 }
 
 void SWMRWriter::report()
