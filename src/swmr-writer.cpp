@@ -11,6 +11,7 @@
 using namespace log4cxx;
 
 #include "hdf5.h"
+#include "hdf5_hl.h"
 #include "timestamp.h"
 #include "swmr-testdata.h"
 #include "progressbar.h"
@@ -143,6 +144,8 @@ void SWMRWriter::write_test_data(unsigned int niter,
     LOG4CXX_INFO(log, "Clients can start reading");
     if (!log->isInfoEnabled()) cout << "##### SWMR mode ######" << endl;
 
+	size_t databuf_nbytes = this->img.num_bytes_chunk(); // used for direct chunk write
+
     TimeStamp ts;
     LOG4CXX_DEBUG(log, "Starting write loop. Iterations: " << niter);
     bool show_pbar = not log->isDebugEnabled();
@@ -159,18 +162,26 @@ void SWMRWriter::write_test_data(unsigned int niter,
         status = H5Dset_extent(dataset, size);
         assert(status >= 0);
 
-        /* Select a hyperslab */
-        filespace = H5Dget_space(dataset);
-        status = H5Sselect_hyperslab(filespace, H5S_SELECT_SET, offset, NULL,
-                                     img_dims, NULL);
-        assert(status >= 0);
+        if (true) {
+        	uint32_t filter_mask = 0x0;
+        	status = H5DOwrite_chunk(dataset, H5P_DEFAULT,
+        							 filter_mask, offset,
+        							 databuf_nbytes, this->img.pdata());
+            assert(status >= 0);
+        } else {
+            /* Select a hyperslab */
+            filespace = H5Dget_space(dataset);
+            status = H5Sselect_hyperslab(filespace, H5S_SELECT_SET, offset, NULL,
+                                         img_dims, NULL);
+            assert(status >= 0);
 
-        /* Write the data to the hyperslab */
-        LOG4CXX_DEBUG(log, "Writing. Offset: " << offset[0] << ", "
-                      << offset[1] << ", " << offset[2]);
-        status = H5Dwrite(dataset, H5T_NATIVE_UINT32, dataspace, filespace,
-        H5P_DEFAULT, this->img.pdata());
-        assert(status >= 0);
+            /* Write the data to the hyperslab */
+            LOG4CXX_DEBUG(log, "Writing. Offset: " << offset[0] << ", "
+                          << offset[1] << ", " << offset[2]);
+            status = H5Dwrite(dataset, H5T_NATIVE_UINT32, dataspace, filespace,
+            H5P_DEFAULT, this->img.pdata());
+            assert(status >= 0);
+        }
 
         /* Increment offsets and dimensions as appropriate */
         offset[0]++;
