@@ -15,7 +15,7 @@ public:
     void create_file();
     void get_test_data();
     void get_test_data(const std::string& fname, const std::string& dsetname);
-    void write_test_data(unsigned int niter, unsigned int nframes_cache);
+    void write_test_data(unsigned int niter, unsigned int nframes_cache, bool direct);
     void report();
 
 private:

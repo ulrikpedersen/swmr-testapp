@@ -11,6 +11,7 @@
 using namespace log4cxx;
 
 #include "hdf5.h"
+#include "hdf5_hl.h"
 #include "timestamp.h"
 #include "swmr-testdata.h"
 #include "progressbar.h"
@@ -78,12 +79,13 @@ void SWMRWriter::get_test_data(const string& fname, const string& dsetname)
 }
 
 void SWMRWriter::write_test_data(unsigned int niter,
-                                 unsigned int nframes_cache)
+                                 unsigned int nframes_cache,
+                                 bool direct)
 {
-    hid_t dataspace, dataset;
-    hid_t filespace, memspace;
-    hid_t prop;
-    herr_t status;
+    hid_t dataspace=0, dataset=0;
+    hid_t filespace=0, memspace=0;
+    hid_t prop=0;
+    herr_t status=0;
     hsize_t chunk_dims[3];
     hsize_t max_dims[3];
     hsize_t img_dims[3];
@@ -134,7 +136,7 @@ void SWMRWriter::write_test_data(unsigned int niter,
 
     /* Create dataset  */
     LOG4CXX_DEBUG(log, "Creating dataset");
-    dataset = H5Dcreate2(this->fid, "data", H5T_NATIVE_INT, dataspace,
+    dataset = H5Dcreate2(this->fid, "data", H5T_NATIVE_UINT32, dataspace,
     H5P_DEFAULT, prop, dapl);
 
     /* Enable SWMR writing mode */
@@ -142,6 +144,8 @@ void SWMRWriter::write_test_data(unsigned int niter,
     LOG4CXX_INFO(log, "##### SWMR mode ######");
     LOG4CXX_INFO(log, "Clients can start reading");
     if (!log->isInfoEnabled()) cout << "##### SWMR mode ######" << endl;
+
+	size_t databuf_nbytes = this->img.num_bytes_chunk(); // used for direct chunk write
 
     TimeStamp ts;
     LOG4CXX_DEBUG(log, "Starting write loop. Iterations: " << niter);
@@ -159,18 +163,27 @@ void SWMRWriter::write_test_data(unsigned int niter,
         status = H5Dset_extent(dataset, size);
         assert(status >= 0);
 
-        /* Select a hyperslab */
-        filespace = H5Dget_space(dataset);
-        status = H5Sselect_hyperslab(filespace, H5S_SELECT_SET, offset, NULL,
-                                     img_dims, NULL);
-        assert(status >= 0);
+        if (direct) {
+        	uint32_t filter_mask = 0x0;
+        	status = H5DOwrite_chunk(dataset, H5P_DEFAULT,
+        							 filter_mask, offset,
+        							 databuf_nbytes, this->img.pdata());
+            assert(status >= 0);
+        } else {
+            /* Select a hyperslab */
+            filespace = H5Dget_space(dataset);
+            assert(filespace >= 0);
+            status = H5Sselect_hyperslab(filespace, H5S_SELECT_SET, offset, NULL,
+                                         img_dims, NULL);
+            assert(status >= 0);
 
-        /* Write the data to the hyperslab */
-        LOG4CXX_DEBUG(log, "Writing. Offset: " << offset[0] << ", "
-                      << offset[1] << ", " << offset[2]);
-        status = H5Dwrite(dataset, H5T_NATIVE_UINT32, dataspace, filespace,
-        H5P_DEFAULT, this->img.pdata());
-        assert(status >= 0);
+            /* Write the data to the hyperslab */
+            LOG4CXX_DEBUG(log, "Writing. Offset: " << offset[0] << ", "
+                          << offset[1] << ", " << offset[2]);
+            status = H5Dwrite(dataset, H5T_NATIVE_UINT32, dataspace, filespace,
+            H5P_DEFAULT, this->img.pdata());
+            assert(status >= 0);
+        }
 
         /* Increment offsets and dimensions as appropriate */
         offset[0]++;
@@ -196,11 +209,10 @@ void SWMRWriter::write_test_data(unsigned int niter,
     nframes = niter;
 
     LOG4CXX_DEBUG(log, "Closing intermediate open HDF objects");
-    H5Dclose(dataset);
-    H5Pclose(prop);
-    H5Pclose(dapl);
-    H5Sclose(dataspace);
-    H5Sclose(filespace);
+    assert( H5Dclose(dataset) >= 0);
+    assert( H5Pclose(prop) >= 0);
+    assert( H5Pclose(dapl) >= 0);
+    assert( H5Sclose(dataspace) >= 0);
 }
 
 void SWMRWriter::report()

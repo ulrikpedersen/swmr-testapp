@@ -145,7 +145,8 @@ void SwmrDemoCli::parse_options()
             ("niter,n", po::value<int>()->default_value(2),
                     "Number of write iterations")
             ("chunk,c", po::value<int>()->default_value(1),
-                    "Number of chunked frames");
+                    "Number of chunked frames")
+            ("direct", "Use optimised direct chunk write");
         break;
     }
 
@@ -279,7 +280,8 @@ int SwmrDemoCli::run_write()
     }
 
     LOG4CXX_INFO(m_log, "Writing 40 iterations");
-    swr.write_test_data(niter, nchunked_frames);
+    bool direct = m_options.count("direct") >= 1;
+    swr.write_test_data(niter, nchunked_frames, direct);
 
     swr.report();
     return 0;

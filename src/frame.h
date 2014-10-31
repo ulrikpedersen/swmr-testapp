@@ -29,6 +29,8 @@ public:
     const std::vector<hsize_t>& chunks();
     uint32_t * create_buffer();
     const uint32_t * pdata();
+    size_t num_bytes_img();
+    size_t num_bytes_chunk();
 
     // Operators
     Frame& operator=(const Frame& src); // assignment
