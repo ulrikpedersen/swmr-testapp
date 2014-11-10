@@ -93,7 +93,7 @@ file(GLOB swmr_SOURCES *.cpp)
 # Create an executable file called helloworld from sources:
 add_executable(swmr ${swmr_SOURCES})
 
-target_link_libraries(swmr ${Boost_LIBRARIES} ${LOG4CXX_LIBRARIES} ${HDF5_LIBRARIES} ${HDF5HL_LIBRARIES} ${REALTIME_LIBRARY} ${ZLIB_LIBRARIES})
+target_link_libraries(swmr ${Boost_LIBRARIES} ${LOG4CXX_LIBRARIES} ${HDF5_LIBRARIES} ${HDF5HL_LIBRARIES} ${REALTIME_LIBRARY} ${ZLIB_LIBRARIES} ${CMAKE_DL_LIBS})
 
 INSTALL(TARGETS swmr
   RUNTIME DESTINATION bin
