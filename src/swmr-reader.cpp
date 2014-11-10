@@ -2,6 +2,7 @@
 #include <vector>
 #include <algorithm>
 #include <assert.h>
+#include <unistd.h>
 
 #include <log4cxx/logger.h>
 using namespace log4cxx;
