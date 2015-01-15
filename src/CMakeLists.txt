@@ -1,3 +1,8 @@
+# create a list of .cpp files from this directory
+file(GLOB swmr_SOURCES *.cpp)
+
+# Create an executable file called helloworld from sources:
+add_executable(swmr ${swmr_SOURCES})
 
 ### Search for and configure the boost libraries ###
 find_package( Boost 1.41.0
@@ -72,14 +77,18 @@ message("HDF5 libs:           " ${HDF5_LIBRARIES} ${HDF5HL_LIBRARIES})
 
 
 ##### Find other dependencies ############
-find_package(Log4CXX 0.10.0 REQUIRED)
+find_package(AprUtil REQUIRED)
+message("apr libs: " ${LIBAPR-UTIL_LIBRARIES})
 find_package(ZLIB REQUIRED)
 
 # librt is really only required if glibc =< 2.16
 FIND_LIBRARY(REALTIME_LIBRARY
              NAMES rt)
-##### End of dependency search ###########
 
+# Find a static library version of liblog4cxx
+set(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
+find_package(Log4CXX 0.10.0 REQUIRED)
+##### End of dependency search ###########
 
 # Include the directory itself as a path to include directories
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
@@ -87,16 +96,12 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 include_directories(${HDF5_INCLUDE_DIRS} ${LOG4CXX_INCLUDE_DIRS}/.. ${Boost_INCLUDE_DIRS})
 add_definitions(${HDF5_DEFINITIONS})
 
-# create a list of .cpp files from this directory
-file(GLOB swmr_SOURCES *.cpp)
-
-# Create an executable file called helloworld from sources:
-add_executable(swmr ${swmr_SOURCES})
-
-target_link_libraries(swmr ${Boost_LIBRARIES} ${LOG4CXX_LIBRARIES} ${HDF5_LIBRARIES} ${HDF5HL_LIBRARIES} ${REALTIME_LIBRARY} ${ZLIB_LIBRARIES} ${CMAKE_DL_LIBS})
+# List the libraries to link into the exe
+target_link_libraries(swmr ${Boost_LIBRARIES} ${LOG4CXX_LIBRARIES} ${HDF5_LIBRARIES} ${HDF5HL_LIBRARIES} ${REALTIME_LIBRARY} ${ZLIB_LIBRARIES} ${CMAKE_DL_LIBS} ${LIBAPR-UTIL_LIBRARIES})
 
 INSTALL(TARGETS swmr
   RUNTIME DESTINATION bin
   LIBRARY DESTINATION lib
   ARCHIVE DESTINATION lib
 )
+
