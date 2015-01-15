@@ -111,7 +111,9 @@ void SwmrDemoCli::parse_options()
         ("testdataset,d", po::value<string>()->default_value("data"),
                 "HDF5 reference dataset name")
         ("logconfig,l", po::value<string>(),
-                "Log4CXX XML configuration file");
+                "Log4CXX XML configuration file")
+        ("progressbar,b", po::bool_switch(),
+                "Display a text progressbar during operation");
 
     po::options_description cmd_options_description("Command options");
     switch(m_subcmd) {
@@ -253,6 +255,8 @@ int SwmrDemoCli::run_read()
     double polltime = m_options["polltime"].as<double>();
     double timeout = m_options["timeout"].as<double>();
     int expected_frames = m_options["nframes"].as<int>();
+    bool show_progress = m_options["progressbar"].as<bool>();
+    srd.enable_progressbar(show_progress);
     srd.monitor_dataset(timeout, polltime, expected_frames);
     int fail_count = srd.report();
     return fail_count;
@@ -281,6 +285,8 @@ int SwmrDemoCli::run_write()
 
     LOG4CXX_INFO(m_log, "Writing 40 iterations");
     bool direct = m_options.count("direct") >= 1;
+    bool show_progress = m_options["progressbar"].as<bool>();
+    swr.enable_progressbar(show_progress);
     swr.write_test_data(niter, nchunked_frames, direct);
 
     swr.report();

@@ -26,6 +26,7 @@ public:
     bool check_dataset();
     void monitor_dataset(double timeout = 2.0, double polltime=0.2, int expected=-1);
     int report();
+    void enable_progressbar(bool enable);
 
 private:
     void print_open_objects();
@@ -41,6 +42,7 @@ private:
     uint32_t * m_pdata;
     unsigned long long m_latest_framenumber;
     std::vector<bool> m_checks;
+    bool m_show_progress;
 };
 
 #endif /* SWMR_READER_H_ */

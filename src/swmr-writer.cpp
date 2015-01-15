@@ -29,6 +29,13 @@ SWMRWriter::SWMRWriter(const string& fname)
     this->fid = -1;
     dt_start = 0.0;
     nframes = 0;
+    show_progress = false;
+}
+
+// Enable the progress bar if debug output is disabled
+void SWMRWriter::enable_progressbar(bool enable)
+{
+    show_progress = (not log->isDebugEnabled()) and enable;
 }
 
 void SWMRWriter::create_file()
@@ -149,8 +156,7 @@ void SWMRWriter::write_test_data(unsigned int niter,
 
     TimeStamp ts;
     LOG4CXX_DEBUG(log, "Starting write loop. Iterations: " << niter);
-    bool show_pbar = not log->isDebugEnabled();
-    if (show_pbar) progressbar(0, niter);
+    if (show_progress) progressbar(0, niter);
     double writetime = 0.;
     double writerate = 0.;
     TimeStamp globaltime;
@@ -202,7 +208,7 @@ void SWMRWriter::write_test_data(unsigned int niter,
             dt_start = globaltime.seconds_until_now();
         }
 
-        if (show_pbar) progressbar(i+1, niter, writerate);
+        if (show_progress) progressbar(i+1, niter, writerate);
     }
 
     dt_start = globaltime.seconds_until_now();

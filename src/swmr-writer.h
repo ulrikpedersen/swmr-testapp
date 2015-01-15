@@ -17,6 +17,7 @@ public:
     void get_test_data(const std::string& fname, const std::string& dsetname);
     void write_test_data(unsigned int niter, unsigned int nframes_cache, bool direct);
     void report();
+    void enable_progressbar(bool enable);
 
 private:
     LoggerPtr log;
@@ -26,6 +27,7 @@ private:
     std::vector<double> write_times;
     double dt_start;
     unsigned int nframes;
+    bool show_progress;
 };
 
 
