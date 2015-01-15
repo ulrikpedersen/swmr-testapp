@@ -46,6 +46,28 @@ Configure and build like this:
     make VERBOSE=1
     make install
 
+Example DLS build for distribution
+----------------------------------
+
+The build environment at DLS is 64bit RHEL6 with a custom installation of log4cxx which
+is linked statically. The following build configuration is used:
+
+    mkdir install
+    cd swmr-testapp
+    mkdir build
+    cd build
+    cmake -DHDF5_ROOT=../hdf5swmr/ \
+          -DCMAKE_INSTALL_PREFIX=../../install/ \
+          -DLOG4CXX_ROOT_DIR=/dls_sw/prod/tools/RHEL6-x86_64/log4cxx/0-10-0/prefix/ \
+          -DBOOST_ROOT=/usr \
+          -DCMAKE_VERBOSE_MAKEFILE=ON \
+          ..
+    make VERBOSE=1
+    make install
+    
+This results in the swmr binary, log configuration file and test data being installed
+into the 'install' directory.
+
 Installing
 ==========
 
