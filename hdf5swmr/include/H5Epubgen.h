@@ -20,6 +20,10 @@
 #ifndef _H5Epubgen_H
 #define _H5Epubgen_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /*********************/
 /* Major error codes */
 /*********************/
@@ -282,6 +286,8 @@ H5_DLLVAR hid_t H5E_NOIDS_g;         /* Out of IDs for group */
 #define H5E_CANTUNDEPEND     (H5OPEN H5E_CANTUNDEPEND_g)
 #define H5E_CANTNOTIFY       (H5OPEN H5E_CANTNOTIFY_g)
 #define H5E_LOGFAIL          (H5OPEN H5E_LOGFAIL_g)
+#define H5E_CANTCORK         (H5OPEN H5E_CANTCORK_g)
+#define H5E_CANTUNCORK       (H5OPEN H5E_CANTUNCORK_g)
 H5_DLLVAR hid_t H5E_CANTFLUSH_g;     /* Unable to flush data from cache */
 H5_DLLVAR hid_t H5E_CANTSERIALIZE_g; /* Unable to serialize data from cache */
 H5_DLLVAR hid_t H5E_CANTTAG_g;       /* Unable to tag metadata in the cache */
@@ -302,6 +308,8 @@ H5_DLLVAR hid_t H5E_CANTDEPEND_g;    /* Unable to create a flush dependency */
 H5_DLLVAR hid_t H5E_CANTUNDEPEND_g;  /* Unable to destroy a flush dependency */
 H5_DLLVAR hid_t H5E_CANTNOTIFY_g;    /* Unable to notify object about action */
 H5_DLLVAR hid_t H5E_LOGFAIL_g;       /* Failure in the cache logging framework */
+H5_DLLVAR hid_t H5E_CANTCORK_g;      /* Unable to cork an object */
+H5_DLLVAR hid_t H5E_CANTUNCORK_g;    /* Unable to uncork an object */
 
 /* Link related errors */
 #define H5E_TRAVERSE         (H5OPEN H5E_TRAVERSE_g)
@@ -330,12 +338,14 @@ H5_DLLVAR hid_t H5E_CANTRECV_g;      /* Can't receive data */
 #define H5E_CANTNEXT         (H5OPEN H5E_CANTNEXT_g)
 #define H5E_BADSELECT        (H5OPEN H5E_BADSELECT_g)
 #define H5E_CANTCOMPARE      (H5OPEN H5E_CANTCOMPARE_g)
+#define H5E_CANTAPPEND       (H5OPEN H5E_CANTAPPEND_g)
 H5_DLLVAR hid_t H5E_CANTCLIP_g;      /* Can't clip hyperslab region */
 H5_DLLVAR hid_t H5E_CANTCOUNT_g;     /* Can't count elements */
 H5_DLLVAR hid_t H5E_CANTSELECT_g;    /* Can't select hyperslab */
 H5_DLLVAR hid_t H5E_CANTNEXT_g;      /* Can't move to next iterator location */
 H5_DLLVAR hid_t H5E_BADSELECT_g;     /* Invalid selection */
 H5_DLLVAR hid_t H5E_CANTCOMPARE_g;   /* Can't compare objects */
+H5_DLLVAR hid_t H5E_CANTAPPEND_g;    /* Can't append object */
 
 /* Argument errors */
 #define H5E_UNINITIALIZED    (H5OPEN H5E_UNINITIALIZED_g)
@@ -378,5 +388,9 @@ H5_DLLVAR hid_t H5E_CANTREMOVE_g;    /* Unable to remove object */
 #define H5E_BADSIZE          (H5OPEN H5E_BADSIZE_g)
 H5_DLLVAR hid_t H5E_CANTCONVERT_g;   /* Can't convert datatypes */
 H5_DLLVAR hid_t H5E_BADSIZE_g;       /* Bad size for object */
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* H5Epubgen_H */

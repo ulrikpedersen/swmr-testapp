@@ -441,7 +441,7 @@ extern "C" {
  ****************************************************************************/
 
 #define H5AC__CURR_CACHE_CONFIG_VERSION 	1
-#define H5AC__MAX_TRACE_FILE_NAME_LEN           1024
+#define H5AC__MAX_TRACE_FILE_NAME_LEN		1024
 
 #define H5AC_METADATA_WRITE_STRATEGY__PROCESS_0_ONLY    0
 #define H5AC_METADATA_WRITE_STRATEGY__DISTRIBUTED       1
@@ -502,7 +502,7 @@ typedef struct H5AC_cache_config_t
 
 
     /* parallel configuration fields: */
-    int                      dirty_bytes_threshold;
+    size_t                   dirty_bytes_threshold;
     int                      metadata_write_strategy;
 
 } H5AC_cache_config_t;

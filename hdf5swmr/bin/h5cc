@@ -92,9 +92,9 @@ CLINKERBASE="gcc"
 # from the hdf5 build. The order of the flags is intended to give precedence
 # to the user's flags.
 H5BLD_CFLAGS=" "
-H5BLD_CPPFLAGS="-D_LARGEFILE_SOURCE -D_LARGEFILE64_SOURCE -D_BSD_SOURCE  "
+H5BLD_CPPFLAGS="-D_LARGEFILE64_SOURCE -D_LARGEFILE_SOURCE  "
 H5BLD_LDFLAGS=" "
-H5BLD_LIBS=" -lpthread -lz -lrt -ldl -lm "
+H5BLD_LIBS="-lrt -lz -ldl -lm "
 
 CC="${HDF5_CC:-$CCBASE}"
 CLINKER="${HDF5_CLINKER:-$CLINKERBASE}"
@@ -347,7 +347,7 @@ if test "x$do_link" = "xyes"; then
     hpux*)                flag="-Wl,+b -Wl," ;;
     freebsd*|solaris*)    flag="-R" ;;
     rs6000*|aix*)         flag="-L" ;;
-    irix*|sgi)            flag="-rpath " ;;
+    sgi)                  flag="-rpath " ;;
     *)                    flag="" ;;
   esac
 

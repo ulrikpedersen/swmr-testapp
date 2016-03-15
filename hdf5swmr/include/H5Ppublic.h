@@ -66,6 +66,7 @@
 #define H5P_DATATYPE_ACCESS 		(H5OPEN H5P_CLS_DATATYPE_ACCESS_ID_g)
 #define H5P_STRING_CREATE 		(H5OPEN H5P_CLS_STRING_CREATE_ID_g)
 #define H5P_ATTRIBUTE_CREATE 		(H5OPEN H5P_CLS_ATTRIBUTE_CREATE_ID_g)
+#define H5P_ATTRIBUTE_ACCESS 		(H5OPEN H5P_CLS_ATTRIBUTE_ACCESS_ID_g)
 #define H5P_OBJECT_COPY	 		(H5OPEN H5P_CLS_OBJECT_COPY_ID_g)
 #define H5P_LINK_CREATE 		(H5OPEN H5P_CLS_LINK_CREATE_ID_g)
 #define H5P_LINK_ACCESS 		(H5OPEN H5P_CLS_LINK_ACCESS_ID_g)
@@ -84,6 +85,7 @@
 #define H5P_DATATYPE_CREATE_DEFAULT	(H5OPEN H5P_LST_DATATYPE_CREATE_ID_g)
 #define H5P_DATATYPE_ACCESS_DEFAULT 	(H5OPEN H5P_LST_DATATYPE_ACCESS_ID_g)
 #define H5P_ATTRIBUTE_CREATE_DEFAULT	(H5OPEN H5P_LST_ATTRIBUTE_CREATE_ID_g)
+#define H5P_ATTRIBUTE_ACCESS_DEFAULT	(H5OPEN H5P_LST_ATTRIBUTE_ACCESS_ID_g)
 #define H5P_OBJECT_COPY_DEFAULT		(H5OPEN H5P_LST_OBJECT_COPY_ID_g)
 #define H5P_LINK_CREATE_DEFAULT		(H5OPEN H5P_LST_LINK_CREATE_ID_g)
 #define H5P_LINK_ACCESS_DEFAULT		(H5OPEN H5P_LST_LINK_ACCESS_ID_g)
@@ -91,6 +93,9 @@
 /* Common creation order flags (for links in groups and attributes on objects) */
 #define H5P_CRT_ORDER_TRACKED           0x0001
 #define H5P_CRT_ORDER_INDEXED           0x0002
+
+/* Default value for all property list classes */
+#define H5P_DEFAULT     (hid_t)0
 
 #ifdef __cplusplus
 extern "C" {
@@ -186,6 +191,7 @@ H5_DLLVAR hid_t H5P_CLS_DATATYPE_CREATE_ID_g;
 H5_DLLVAR hid_t H5P_CLS_DATATYPE_ACCESS_ID_g;
 H5_DLLVAR hid_t H5P_CLS_STRING_CREATE_ID_g;
 H5_DLLVAR hid_t H5P_CLS_ATTRIBUTE_CREATE_ID_g;
+H5_DLLVAR hid_t H5P_CLS_ATTRIBUTE_ACCESS_ID_g;
 H5_DLLVAR hid_t H5P_CLS_OBJECT_COPY_ID_g;
 H5_DLLVAR hid_t H5P_CLS_LINK_CREATE_ID_g;
 H5_DLLVAR hid_t H5P_CLS_LINK_ACCESS_ID_g;
@@ -203,6 +209,7 @@ H5_DLLVAR hid_t H5P_LST_GROUP_ACCESS_ID_g;
 H5_DLLVAR hid_t H5P_LST_DATATYPE_CREATE_ID_g;
 H5_DLLVAR hid_t H5P_LST_DATATYPE_ACCESS_ID_g;
 H5_DLLVAR hid_t H5P_LST_ATTRIBUTE_CREATE_ID_g;
+H5_DLLVAR hid_t H5P_LST_ATTRIBUTE_ACCESS_ID_g;
 H5_DLLVAR hid_t H5P_LST_OBJECT_COPY_ID_g;
 H5_DLLVAR hid_t H5P_LST_LINK_CREATE_ID_g;
 H5_DLLVAR hid_t H5P_LST_LINK_ACCESS_ID_g;
@@ -342,21 +349,35 @@ H5_DLL herr_t H5Pset_file_image_callbacks(hid_t fapl_id,
        H5FD_file_image_callbacks_t *callbacks_ptr);
 H5_DLL herr_t H5Pget_file_image_callbacks(hid_t fapl_id,
        H5FD_file_image_callbacks_t *callbacks_ptr);
+H5_DLL herr_t H5Pset_core_write_tracking(hid_t fapl_id, hbool_t is_enabled, size_t page_size);
+H5_DLL herr_t H5Pget_core_write_tracking(hid_t fapl_id, hbool_t *is_enabled, size_t *page_size);
 H5_DLL herr_t H5Pset_metadata_read_attempts(hid_t plist_id, unsigned attempts);
 H5_DLL herr_t H5Pget_metadata_read_attempts(hid_t plist_id, unsigned *attempts);
 H5_DLL herr_t H5Pset_object_flush_cb(hid_t plist_id, H5F_flush_cb_t func, void *udata);
 H5_DLL herr_t H5Pget_object_flush_cb(hid_t plist_id, H5F_flush_cb_t *func, void **udata);
 H5_DLL herr_t H5Pset_mdc_log_options(hid_t plist_id, hbool_t is_enabled, const char *location, hbool_t start_on_access);
 H5_DLL herr_t H5Pget_mdc_log_options(hid_t plist_id, hbool_t *is_enabled, char *location, size_t *location_size, hbool_t *start_on_access);
-
-H5_DLL herr_t H5Pset_core_write_tracking(hid_t fapl_id, hbool_t is_enabled, size_t page_size);
-H5_DLL herr_t H5Pget_core_write_tracking(hid_t fapl_id, hbool_t *is_enabled, size_t *page_size);
+#ifdef H5_HAVE_PARALLEL
+H5_DLL herr_t H5Pset_coll_metadata_read(hid_t plist_id, hbool_t is_collective);
+H5_DLL herr_t H5Pget_coll_metadata_read(hid_t plist_id, hbool_t *is_collective);
+H5_DLL herr_t H5Pset_coll_metadata_write(hid_t plist_id, hbool_t is_collective);
+H5_DLL herr_t H5Pget_coll_metadata_write(hid_t plist_id, hbool_t *is_collective);
+#endif /* H5_HAVE_PARALLEL */
 
 /* Dataset creation property list (DCPL) routines */
 H5_DLL herr_t H5Pset_layout(hid_t plist_id, H5D_layout_t layout);
 H5_DLL H5D_layout_t H5Pget_layout(hid_t plist_id);
 H5_DLL herr_t H5Pset_chunk(hid_t plist_id, int ndims, const hsize_t dim[/*ndims*/]);
 H5_DLL int H5Pget_chunk(hid_t plist_id, int max_ndims, hsize_t dim[]/*out*/);
+H5_DLL herr_t H5Pset_virtual(hid_t dcpl_id, hid_t vspace_id,
+    const char *src_file_name, const char *src_dset_name, hid_t src_space_id);
+H5_DLL herr_t H5Pget_virtual_count(hid_t dcpl_id, size_t *count/*out*/);
+H5_DLL hid_t H5Pget_virtual_vspace(hid_t dcpl_id, size_t index);
+H5_DLL hid_t H5Pget_virtual_srcspace(hid_t dcpl_id, size_t index);
+H5_DLL ssize_t H5Pget_virtual_filename(hid_t dcpl_id, size_t index,
+    char *name/*out*/, size_t size);
+H5_DLL ssize_t H5Pget_virtual_dsetname(hid_t dcpl_id, size_t index,
+    char *name/*out*/, size_t size);
 H5_DLL herr_t H5Pset_external(hid_t plist_id, const char *name, off_t offset,
           hsize_t size);
 H5_DLL herr_t H5Pset_chunk_opts(hid_t plist_id, unsigned opts);
@@ -389,10 +410,14 @@ H5_DLL herr_t H5Pget_chunk_cache(hid_t dapl_id,
        size_t *rdcc_nslots/*out*/,
        size_t *rdcc_nbytes/*out*/,
        double *rdcc_w0/*out*/);
-H5_DLL herr_t H5Pset_append_flush(hid_t plist_id, 
-    int ndims, const hsize_t boundary[], H5D_append_cb_t func, void *udata);
-H5_DLL herr_t H5Pget_append_flush(hid_t plist_id, 
-    int dims, hsize_t boundary[], H5D_append_cb_t *func, void **udata);
+H5_DLL herr_t H5Pset_virtual_view(hid_t plist_id, H5D_vds_view_t view);
+H5_DLL herr_t H5Pget_virtual_view(hid_t plist_id, H5D_vds_view_t *view);
+H5_DLL herr_t H5Pset_virtual_printf_gap(hid_t plist_id, hsize_t gap_size);
+H5_DLL herr_t H5Pget_virtual_printf_gap(hid_t plist_id, hsize_t *gap_size);
+H5_DLL herr_t H5Pset_append_flush(hid_t plist_id, unsigned ndims,
+    const hsize_t boundary[], H5D_append_cb_t func, void *udata);
+H5_DLL herr_t H5Pget_append_flush(hid_t plist_id, unsigned dims,
+    hsize_t boundary[], H5D_append_cb_t *func, void **udata);
 
 /* Dataset xfer property list (DXPL) routines */
 H5_DLL herr_t H5Pset_data_transform(hid_t plist_id, const char* expression);

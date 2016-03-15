@@ -3,37 +3,37 @@
 
 General Information:
 -------------------
-		   HDF5 Version: 1.9.178-swmr_chksum5
-		  Configured on: Tue Oct 14 15:07:11 BST 2014
+		   HDF5 Version: 1.10.0-alpha1
+		  Configured on: Tue Mar 15 13:11:11 GMT 2016
 		  Configured by: up45@pc0009.cs.diamond.ac.uk
-		 Configure mode: development
+		 Configure mode: production
 		    Host system: x86_64-unknown-linux-gnu
-	      Uname information: Linux pc0009.cs.diamond.ac.uk 2.6.32-431.20.3.el6.x86_64 #1 SMP Fri Jun 6 18:30:54 EDT 2014 x86_64 x86_64 x86_64 GNU/Linux
+	      Uname information: Linux pc0009.cs.diamond.ac.uk 2.6.32-573.3.1.el6.x86_64 #1 SMP Mon Aug 10 09:44:54 EDT 2015 x86_64 x86_64 x86_64 GNU/Linux
 		       Byte sex: little-endian
-		      Libraries: static, shared
+		      Libraries: static
 	     Installation point: /home/up45/github/swmr-testapp/hdf5swmr
 
 Compiling Options:
 ------------------
-               Compilation Mode: development
+               Compilation Mode: production
                      C Compiler: /usr/bin/gcc ( gcc (GCC) 4.4.7 20120313 )
                          CFLAGS: 
-                      H5_CFLAGS: -std=c99 -pedantic -Wall -Wextra -Wundef -Wshadow -Wpointer-arith -Wbad-function-cast -Wcast-qual -Wcast-align -Wwrite-strings -Wconversion -Waggregate-return -Wstrict-prototypes -Wmissing-prototypes -Wmissing-declarations -Wredundant-decls -Wnested-externs -Winline -Wno-long-long -Wfloat-equal -Wmissing-format-attribute -Wmissing-noreturn -Wpacked -Wdisabled-optimization -Wformat=2 -Wunreachable-code -Wendif-labels -Wdeclaration-after-statement -Wold-style-definition -Winvalid-pch -Wvariadic-macros -Wnonnull -Winit-self -Wmissing-include-dirs -Wswitch-default -Wswitch-enum -Wunused-macros -Wunsafe-loop-optimizations -Wc++-compat -Wstrict-overflow -Wlogical-op -Wlarger-than=2048 -Wvla -Wsync-nand -Wframe-larger-than=16384 -Wpacked-bitfield-compat -g -fverbose-asm
+                      H5_CFLAGS: -std=c99 -pedantic -Wall -Wextra -Wundef -Wshadow -Wpointer-arith -Wbad-function-cast -Wcast-qual -Wcast-align -Wwrite-strings -Wconversion -Waggregate-return -Wstrict-prototypes -Wmissing-prototypes -Wmissing-declarations -Wredundant-decls -Wnested-externs -Winline -Wno-long-long -Wfloat-equal -Wmissing-format-attribute -Wmissing-noreturn -Wpacked -Wdisabled-optimization -Wformat=2 -Wunreachable-code -Wendif-labels -Wdeclaration-after-statement -Wold-style-definition -Winvalid-pch -Wvariadic-macros -Wnonnull -Winit-self -Wmissing-include-dirs -Wswitch-default -Wswitch-enum -Wunused-macros -Wunsafe-loop-optimizations -Wc++-compat -Wstrict-overflow -Wlogical-op -Wlarger-than=2048 -Wvla -Wsync-nand -Wframe-larger-than=16384 -Wpacked-bitfield-compat -O3
                       AM_CFLAGS: 
                        CPPFLAGS: 
-                    H5_CPPFLAGS: -D_POSIX_C_SOURCE=199506L   -UNDEBUG -DH5D_DEBUG -DH5E_DEBUG -DH5F_DEBUG -DH5G_DEBUG -DH5HG_DEBUG -DH5I_DEBUG -DH5MM_DEBUG -DH5O_DEBUG -DH5P_DEBUG -DH5S_DEBUG -DH5T_DEBUG -DH5V_DEBUG -DH5Z_DEBUG -DH5_DEBUG_API
-                    AM_CPPFLAGS: -D_LARGEFILE_SOURCE -D_LARGEFILE64_SOURCE -D_BSD_SOURCE 
-               Shared C Library: yes
+                    H5_CPPFLAGS: -D_GNU_SOURCE -D_POSIX_C_SOURCE=200112L   -UH5_DEBUG_API
+                    AM_CPPFLAGS: -D_LARGEFILE64_SOURCE -D_LARGEFILE_SOURCE 
+               Shared C Library: no
                Static C Library: yes
   Statically Linked Executables: 
                         LDFLAGS: 
                      H5_LDFLAGS: 
                      AM_LDFLAGS: 
- 	 	Extra libraries:  -lpthread -lz -lrt -ldl -lm 
+ 	 	Extra libraries: -lrt -lz -ldl -lm 
  		       Archiver: ar
  		 	 Ranlib: ranlib
- 	      Debugged Packages: d,e,f,g,hg,i,mm,o,p,s,t,v,z
-		    API Tracing: yes
+ 	      Debugged Packages: 
+		    API Tracing: no
 
 Languages:
 ----------
@@ -45,17 +45,15 @@ Features:
 ---------
                   Parallel HDF5: no
              High Level library: yes
-                   Threadsafety: yes
+                   Threadsafety: no
             Default API Mapping: v110
  With Deprecated Public Symbols: yes
          I/O filters (external): deflate(zlib)
-         I/O filters (internal): shuffle,fletcher32,nbit,scaleoffset
                             MPE: no
                      Direct VFD: no
                         dmalloc: no
 Clear file buffers before write: yes
            Using memory checker: no
          Function Stack Tracing: no
-      Strict File Format Checks: yes
-   Optimization Instrumentation: yes
-       Large File Support (LFS): yes
+      Strict File Format Checks: no
+   Optimization Instrumentation: no
