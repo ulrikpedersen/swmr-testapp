@@ -38,6 +38,7 @@ set(CMAKE_MODULE_PATH ${swmr-testapp_SOURCE_DIR}/cmake ${CMAKE_MODULE_PATH})
 #macro_ensure_out_of_source_build("${PROJECT_NAME} requires an out of source build.")
 
 add_subdirectory(src)
-install(FILES swmr_log_conf.xml DESTINATION etc COMPONENT config)
-install(FILES testdata/full_chunk_img.h5 DESTINATION data COMPONENT config)
+install(FILES   swmr_log_conf.xml DESTINATION etc  COMPONENT config)
+install(FILES  testdata/img_4M.h5 DESTINATION data COMPONENT config)
+install(FILES testdata/img_16M.h5 DESTINATION data COMPONENT config)
 
