@@ -39,7 +39,6 @@ Configure and build like this:
     mkdir build
     cd build
     cmake -DHDF5_ROOT=/path/to/hdf5/swmr/installation \
-          -DHDF5_USE_STATIC_LIBRARIES=ON \
           -DBOOST_ROOT=/path/to/boost/installation \
           -DCMAKE_INSTALL_PREFIX=/path/to/install/destination
           ..
@@ -61,6 +60,7 @@ is linked statically. The following build configuration is used:
           -DLOG4CXX_ROOT_DIR=/dls_sw/prod/tools/RHEL6-x86_64/log4cxx/0-10-0/prefix/ \
           -DBOOST_ROOT=/usr \
           -DCMAKE_VERBOSE_MAKEFILE=ON \
+          -DBoost_NO_BOOST_CMAKE=ON \
           ..
     make VERBOSE=1
     make install
@@ -91,27 +91,27 @@ sed in the writer when creating the new dataset in the output DATAFILE.
 
 An example --testdatafile could look something like this:
 
-    h5dump -Hp excimg.h5 
-    HDF5 "excimg.h5" {
+    h5dump -pH testdata/img_16M.h5 
+    HDF5 "testdata/img_16M.h5" {
     GROUP "/" {
-       DATASET "data" {
-          DATATYPE  H5T_STD_U16LE
-          DATASPACE  SIMPLE { ( 1, 1024, 2048 ) / ( 1, 1024, 2048 ) }
-          STORAGE_LAYOUT {
-             CHUNKED ( 1, 256, 2048 )
-             SIZE 4194304
-          }
-          FILTERS {
-             NONE
-          }
-          FILLVALUE {
-             FILL_TIME H5D_FILL_TIME_ALLOC
-             VALUE  0
-          }
-          ALLOCATION_TIME {
-             H5D_ALLOC_TIME_INCR
-          }
-       }
+        DATASET "data" {
+            DATATYPE  H5T_STD_U32LE
+            DATASPACE  SIMPLE { ( 1, 4096, 1024 ) / ( 1, 4096, 1024 ) }
+            STORAGE_LAYOUT {
+                CHUNKED ( 1, 4096, 1024 )
+                SIZE 16777216
+            }
+            FILTERS {
+                NONE
+            }
+            FILLVALUE {
+                FILL_TIME H5D_FILL_TIME_ALLOC
+                VALUE  0
+            }
+            ALLOCATION_TIME {
+                H5D_ALLOC_TIME_INCR
+            }
+        }
     }
     }
 

@@ -51,11 +51,11 @@ IF (HDF5_ROOT)
              PATHS ${HDF5_ROOT}/include
              NO_DEFAULT_PATH )
   find_library( HDF5_LIBRARIES
-                NAMES hdf5 hdf5_hl
+                NAMES libhdf5.a
                 PATHS ${HDF5_ROOT}/lib
                 NO_DEFAULT_PATH )
   find_library( HDF5HL_LIBRARIES
-                NAMES hdf5_hl
+                NAMES libhdf5_hl.a
                 PATHS ${HDF5_ROOT}/lib
                 NO_DEFAULT_PATH )
 ELSE(HDF5_ROOT)
