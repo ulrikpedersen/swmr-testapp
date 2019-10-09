@@ -23,7 +23,7 @@
 # to be set before calling find_package:
 #
 #  LOG4CXX_ROOT_DIR  Set this variable to the root installation of
-#                  	 Log4cxx Library if the module has problems finding
+#                       Log4cxx Library if the module has problems finding
 #                    the proper installation path.
 #
 # Variables defined by this module:
@@ -47,46 +47,46 @@ ENDIF(PkgConfig_FOUND)
 set(LOG4CXX_DEFINITIONS ${PC_LOG4CXX_CFLAGS_OTHER})
 
 find_path(LOG4CXX_INCLUDE_DIR 
-	NAMES
-		log4cxx.h
+    NAMES
+        log4cxx.h
     PATHS 
-		${LOG4CXX_ROOT_DIR}/include
+        ${LOG4CXX_ROOT_DIR}/include
         ${PC_LOG4CXX_INCLUDEDIR} 
         ${PC_LOG4CXX_INCLUDE_DIRS}
     PATH_SUFFIXES 
-		log4cxx
+        log4cxx
 )
 
 find_library(LOG4CXX_LIBRARY
     NAMES 
-		log4cxx
+        log4cxx
     PATHS 
-		${LOG4CXX_ROOT_DIR}/lib 
+        ${LOG4CXX_ROOT_DIR}/lib64
         ${PC_LOG4CXX_LIBDIR} 
         ${PC_LOG4CXX_LIBRARY_DIRS}         
 )
-			 
+             
 include(FindPackageHandleStandardArgs)
 
 # handle the QUIETLY and REQUIRED arguments and set LOG4CXX_FOUND to TRUE
 # if all listed variables are TRUE
 find_package_handle_standard_args(LOG4CXX 
-	DEFAULT_MSG
+    DEFAULT_MSG
     LOG4CXX_LIBRARY 
-	LOG4CXX_INCLUDE_DIR
+    LOG4CXX_INCLUDE_DIR
 )
 
 mark_as_advanced(LOG4CXX_INCLUDE_DIR LOG4CXX_LIBRARY)
 
 if (LOG4CXX_FOUND)
-	set(LOG4CXX_INCLUDE_DIRS ${LOG4CXX_INCLUDE_DIR})
-	set(LOG4CXX_LIBRARIES ${LOG4CXX_LIBRARY})
-	
+    set(LOG4CXX_INCLUDE_DIRS ${LOG4CXX_INCLUDE_DIR})
+    set(LOG4CXX_LIBRARIES ${LOG4CXX_LIBRARY})
+    
     get_filename_component(LOG4CXX_LIBRARY_DIR ${LOG4CXX_LIBRARY} PATH)
     get_filename_component(LOG4CXX_LIBRARY_NAME ${LOG4CXX_LIBRARY} NAME_WE)
     
     mark_as_advanced(LOG4CXX_LIBRARY_DIR LOG4CXX_LIBRARY_NAME)
 
-	message (STATUS "Include directories: ${LOG4CXX_INCLUDE_DIRS}") 
-	message (STATUS "Libraries: ${LOG4CXX_LIBRARIES}") 
+    message (STATUS "Include directories: ${LOG4CXX_INCLUDE_DIRS}") 
+    message (STATUS "Libraries: ${LOG4CXX_LIBRARIES}") 
 endif ()

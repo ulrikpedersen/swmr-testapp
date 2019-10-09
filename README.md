@@ -68,14 +68,34 @@ is linked statically. The following build configuration is used:
 This results in the swmr binary, log configuration file and test data being installed
 into the 'install' directory.
 
+Docker
+======
+
+A Dockerfile is provided which builds two docker targets for build- and run-time.
+
+To build a development/build (large) image:
+`docker build --target build -t build-swmr-testapp .`
+  
+Run the development/build image to rebuilt/test/tweak: `docker run --rm -it build-swmr-testapp`
+
+To build the runtime image: `docker build --target run -t swmr-testapp .`
+
+The runtime image comes with a default `CMD` to run the swmr writer. The output destination
+directory is specified with the environment variable `SWMR_WRITE_DEST` and the number of (4MB)
+image frames to write is set with the variable `SWMR_WRITE_NFRAMES`.
+Run like this, for example, to write out 1000 x 4MB frames. Note the mapping fo /data:
+
+```docker run --rm -it -v `pwd`/data:/data --env SWMR_WRITE_DEST=/data --env SWMR_WRITE_NFRAMES=1000 swmr-testapp```
+
+
 Installing
 ==========
 
-The make install command will install the application into a system location.
+The `make install` command will install the application into a system location.
 
 If the dependent libraries are not installed in system directories it may be 
 useful to configure the build with the cmake variable 
-CMAKE_INSTALL_RPATH_USE_LINK_PATH=ON as this will retain the rpath in the binary
+`CMAKE_INSTALL_RPATH_USE_LINK_PATH=ON` as this will retain the rpath in the binary
 and it will remember where to find its dependencies.
 
 Running

@@ -86,7 +86,7 @@ FIND_LIBRARY(REALTIME_LIBRARY
              NAMES rt)
 
 # Find a static library version of liblog4cxx
-set(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
+#set(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
 find_package(Log4CXX 0.10.0 REQUIRED)
 ##### End of dependency search ###########
 
